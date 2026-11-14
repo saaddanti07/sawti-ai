@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101526">
+  <meta name="description" content="صوتي AI — حوّل النص العربي إلى صوت طبيعي مجاناً.">
+  <title>صوتي AI | تحويل النص إلى صوت</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#141c31;--panel2:#1b2640;--text:#f4f6ff;--muted:#aab4ce;--accent:#8b7cff;--accent2:#4ed6c2;--line:#2b3856;--danger:#ff7b8a}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at 80% 0%,#20264b 0%,var(--bg) 48%);color:var(--text);font-family:Tahoma,Arial,sans-serif;min-height:100vh}
+    .wrap{width:min(960px,92%);margin:auto;padding:38px 0 55px}
+    header{text-align:center;margin-bottom:28px}
+    .logo{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,var(--accent),#4b9cff);font-size:27px;box-shadow:0 12px 35px #7567ff45}
+    h1{font-size:clamp(28px,5vw,42px);margin:15px 0 8px;letter-spacing:-1px}
+    .sub{color:var(--muted);font-size:15px;line-height:1.8;margin:0}
+    .tag{display:inline-block;margin-top:13px;border:1px solid #345c63;color:#8ce8d9;background:#173b3b66;padding:6px 12px;border-radius:99px;font-size:12px}
+    .card{background:linear-gradient(155deg,#18223aee,#11192bee);border:1px solid var(--line);border-radius:22px;padding:clamp(17px,3vw,28px);box-shadow:0 24px 70px #0004}
+    label{display:block;font-weight:bold;font-size:14px;margin:0 0 10px}
+    textarea,select{width:100%;background:#0d1528;border:1px solid #34415f;color:var(--text);border-radius:13px;padding:14px;font:15px Tahoma,Arial;outline:none}
+    textarea{resize:vertical;min-height:190px;line-height:1.9}
+    textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px #8b7cff20}
+    .counter{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:8px}
+    .grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:14px;margin-top:22px}
+    .field{min-width:0}
+    select{height:48px}
+    .range-line{display:flex;align-items:center;gap:9px}
+    input[type=range]{width:100%;accent-color:var(--accent)}
+    .range-value{color:#c9c3ff;min-width:42px;text-align:center;font-size:13px}
+    .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+    button,.download{border:0;border-radius:13px;padding:14px 20px;font: bold 14px Tahoma,Arial;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px}
+    button:disabled{opacity:.55;cursor:wait}
+    .primary{background:linear-gradient(100deg,#8b7cff,#5d8dff);color:white;flex:1;min-width:190px;box-shadow:0 10px 24px #7166ff35}
+    .secondary{background:#25324d;color:#e8edff;border:1px solid #3b4a6b}
+    .result{display:none;margin-top:22px;padding:18px;background:#0d1729;border:1px solid #31415e;border-radius:16px}
+    .result.show{display:block}
+    audio{width:100%;margin:12px 0 4px}
+    .download{background:#174a46;color:#9ff5e5}
+    .status{font-size:13px;color:var(--muted);margin-top:14px;min-height:20px}
+    .status.error{color:var(--danger)}
+    .note{margin-top:18px;padding:13px 15px;background:#302b1d66;border:1px solid #655532;border-radius:12px;color:#d9c99b;font-size:12px;line-height:1.8}
+    footer{text-align:center;color:#7885a2;font-size:12px;margin-top:22px}
+    @media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding-top:25px}.actions>*{width:100%}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="logo">♫</div>
+      <h1>صوتي <span style="color:#a99fff">AI</span></h1>
+      <p class="sub">حوّل كلماتك إلى صوت عربي طبيعي في ثوانٍ.<br>اكتب النص، اختر الصوت، واستمع إلى النتيجة.</p>
+      <span class="tag">✦ مجاني للبدء · لا يحتاج إلى تسجيل</span>
+    </header>
+
+    <section class="card">
+      <label for="text">النص الذي تريد تحويله</label>
+      <textarea id="text" maxlength="5000" placeholder="اكتب أو الصق النص العربي هنا...&#10;&#10;مثال: مرحباً بك في صوتي، أداتك البسيطة لتحويل النصوص إلى صوت."></textarea>
+      <div class="counter"><span>يدعم النصوص العربية</span><span id="count">0 / 5000</span></div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="voice">اختر الصوت</label>
+          <select id="voice">
+            <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
+            <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
+            <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
+            <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
+            <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
+            <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
+            <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
+            <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rate">سرعة القراءة</label>
+          <div class="range-line"><input id="rate" type="range" min="-30" max="30" value="0"><span class="range-value" id="rateVal">0%</span></div>
+        </div>
+        <div class="field">
+          <label for="pitch">حدة الصوت</label>
+          <div class="range-line"><input id="pitch" type="range" min="-20" max="20" value="0"><span class="range-value" id="pitchVal">0</span></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="generate">✦ تحويل النص إلى صوت</button>
+        <button class="secondary" id="clear">مسح النص</button>
+      </div>
+      <div class="status" id="status" role="status"></div>
+
+      <div class="result" id="result">
+        <label>الصوت الناتج</label>
+        <audio id="player" controls></audio>
+        <a class="download" id="download" download="sawti-ai.mp3">⬇ تحميل MP3</a>
+      </div>
+      <div class="note">تنبيه: يتطلب التحويل اتصالاً بالإنترنت. يُرسل النص إلى خدمة تحويل صوت خارجية لمعالجته؛ تجنب إدخال كلمات المرور أو المعلومات الخاصة.</div>
+    </section>
+    <footer>صوتي AI · النسخة التجريبية الأولى</footer>
+  </main>
+  <script>
+    const textEl=document.getElementById('text'), count=document.getElementById('count');
+    const rate=document.getElementById('rate'), pitch=document.getElementById('pitch');
+    const statusEl=document.getElementById('status'), generate=document.getElementById('generate');
+    const result=document.getElementById('result'), player=document.getElementById('player');
+    const download=document.getElementById('download');
+    let currentUrl=null;
+    textEl.addEventListener('input',()=>count.textContent=`${textEl.value.length} / 5000`);
+    rate.addEventListener('input',()=>document.getElementById('rateVal').textContent=`${rate.value}%`);
+    pitch.addEventListener('input',()=>document.getElementById('pitchVal').textContent=pitch.value);
+    document.getElementById('clear').addEventListener('click',()=>{
+      textEl.value=''; count.textContent='0 / 5000'; statusEl.textContent='';
+      result.classList.remove('show'); player.pause();
+      if(currentUrl) URL.revokeObjectURL(currentUrl);
+    });
+    generate.addEventListener('click',async()=>{
+      const text=textEl.value.trim();
+      if(!text){statusEl.textContent='اكتب النص الذي تريد تحويله أولاً.';statusEl.className='status error';textEl.focus();return;}
+      generate.disabled=true; generate.textContent='⏳ جارٍ إنشاء الصوت...';
+      statusEl.className='status';statusEl.textContent='قد يستغرق التحويل بضع ثوانٍ حسب طول النص وسرعة الإنترنت.';
+      result.classList.remove('show');
+      try{
+        const response=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({text,voice:document.getElementById('voice').value,rate:Number(rate.value),pitch:Number(pitch.value)})});
+        if(!response.ok){let msg='حدث خطأ أثناء إنشاء الصوت.';try{const data=await response.json();msg=data.detail||msg;}catch(e){}throw new Error(msg);}
+        const blob=await response.blob();
+        if(currentUrl)URL.revokeObjectURL(currentUrl);
+        currentUrl=URL.createObjectURL(blob);player.src=currentUrl;download.href=currentUrl;
+        result.classList.add('show');statusEl.textContent='تم إنشاء الصوت بنجاح. يمكنك الاستماع أو تحميل ملف MP3.';
+      }catch(err){statusEl.textContent=err.message||'تعذر الاتصال بالخادم. حاول مرة أخرى.';statusEl.className='status error';}
+      finally{generate.disabled=false;generate.textContent='✦ تحويل النص إلى صوت';}
+    });
+  </script>
+</body>
+</html>
