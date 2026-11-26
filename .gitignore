@@ -3,3 +3,16 @@ __pycache__/
 .venv/
 generated/
 .env
+
+# Node / Capacitor web build
+node_modules/
+www/
+
+# Android build outputs
+android/app/build/
+android/build/
+android/.gradle/
+android/app/release.keystore
+*.apk
+*.aab
+local.properties
