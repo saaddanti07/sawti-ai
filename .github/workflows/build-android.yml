@@ -1,4 +1,4 @@
-# بناء تطبيق صوتي AI لأندرويد باستخدام GitHub Actions
+# بناء تطبيق NABRA AI (نَبْرَة AI) لأندرويد باستخدام GitHub Actions
 #
 # - عند كل push إلى main أو تشغيل يدوي (workflow_dispatch) يتم بناء APK تجريبي (debug)
 #   ورفعه كـ artifact قابل للتنزيل.

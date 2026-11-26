@@ -40,6 +40,7 @@ function apiUrl(path) {
 const textEl = document.getElementById('text');
 const count = document.getElementById('count');
 const voiceEl = document.getElementById('voice');
+const voiceMeta = document.getElementById('voiceMeta');
 const rate = document.getElementById('rate');
 const pitch = document.getElementById('pitch');
 const statusEl = document.getElementById('status');
@@ -50,8 +51,17 @@ const player = document.getElementById('player');
 const saveBtn = document.getElementById('save');
 const shareBtn = document.getElementById('share');
 const offlineBanner = document.getElementById('offlineBanner');
+const settingsBtn = document.getElementById('settingsBtn');
 
-const GENERATE_LABEL = '✦ تحويل النص إلى صوت';
+// Custom player elements
+const playPauseBtn = document.getElementById('playPause');
+const progressFill = document.getElementById('progressFill');
+const seekBar = document.getElementById('seekBar');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const waveformEl = document.getElementById('waveform');
+
+const GENERATE_LABEL_HTML = '<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">تحويل النص إلى صوت</span>';
 const TTS_TIMEOUT_MS = 120000; // Render free tier may need time to wake up
 const VOICES_TIMEOUT_MS = 30000;
 
@@ -67,6 +77,35 @@ function setStatus(message, isError = false) {
 
 function setOffline(offline) {
   offlineBanner.classList.toggle('show', offline);
+}
+
+function formatTime(sec) {
+  if (!isFinite(sec) || sec < 0) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function updateVoiceMeta() {
+  if (!voiceMeta || !voiceEl) return;
+  const opt = voiceEl.options[voiceEl.selectedIndex];
+  if (!opt) return;
+  // opt.text is like "أمينة — جزائرية (أنثى)"
+  const text = opt.textContent.trim();
+  // Extract for meta: keep as is but shorten
+  // Show as "جزائرية · أنثى · Amina" - derive English id for hint
+  const id = voiceEl.value; // ar-DZ-AminaNeural
+  const eng = id.split('-').pop().replace('Neural','');
+  const parts = text.split(' — ');
+  if (parts.length >= 2) {
+    const name = parts[0];
+    const rest = parts[1]; // "جزائرية (أنثى)"
+    const accent = rest.split(' (')[0];
+    const gender = rest.includes('(') ? rest.split('(')[1].replace(')','') : '';
+    voiceMeta.textContent = `${accent} · ${gender} · ${eng}`;
+  } else {
+    voiceMeta.textContent = text;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +141,16 @@ function blobToBase64(blob) {
 
 async function cleanupPreviousAudio() {
   player.pause();
+  // reset custom player UI
+  if (playPauseBtn) {
+    playPauseBtn.querySelector('.icon-play').style.display = '';
+    playPauseBtn.querySelector('.icon-pause').style.display = 'none';
+  }
+  if (waveformEl) waveformEl.classList.remove('playing');
+  if (progressFill) progressFill.style.width = '0%';
+  if (seekBar) seekBar.value = '0';
+  if (currentTimeEl) currentTimeEl.textContent = '0:00';
+  if (durationEl) durationEl.textContent = '0:00';
   if (currentUrl) {
     URL.revokeObjectURL(currentUrl);
     currentUrl = null;
@@ -141,6 +190,7 @@ async function loadVoices() {
         voiceEl.appendChild(option);
       }
       if (previous) voiceEl.value = previous;
+      updateVoiceMeta();
     }
   } catch (err) {
     // Keep the built-in voice list so the UI stays usable offline.
@@ -175,6 +225,7 @@ async function generateSpeech() {
   generate.innerHTML = '<span class="spinner"></span> جارٍ إنشاء الصوت...';
   setStatus('قد يستغرق التحويل بضع ثوانٍ حسب طول النص وسرعة الإنترنت. إذا كان الخادم نائماً فقد يستغرق أول طلب وقتاً أطول.');
   result.classList.remove('show');
+  result.setAttribute('aria-hidden', 'true');
   await cleanupPreviousAudio();
 
   try {
@@ -202,8 +253,13 @@ async function generateSpeech() {
     currentBlob = blob;
     currentUrl = URL.createObjectURL(blob);
     player.src = currentUrl;
+    // Load metadata for duration
+    player.load();
     result.classList.add('show');
-    setStatus('تم إنشاء الصوت بنجاح. يمكنك الاستماع أو حفظ ملف MP3 أو مشاركته.');
+    result.setAttribute('aria-hidden', 'false');
+    // scroll player into view on mobile
+    setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
+    setStatus('تم إنشاء الصوت بنجاح. استمع الآن أو احفظه أو شاركه.');
     try { await player.play(); } catch (e) { /* autoplay may be blocked; user can press play */ }
   } catch (err) {
     if (err && err.message === 'timeout') {
@@ -215,7 +271,7 @@ async function generateSpeech() {
     }
   } finally {
     generate.disabled = false;
-    generate.textContent = GENERATE_LABEL;
+    generate.innerHTML = GENERATE_LABEL_HTML;
   }
 }
 
@@ -306,6 +362,91 @@ async function shareMp3() {
 }
 
 // ---------------------------------------------------------------------------
+// Custom audio player logic
+// ---------------------------------------------------------------------------
+function setupCustomPlayer() {
+  if (!player || !playPauseBtn) return;
+
+  function updatePlayState(isPlaying) {
+    const playIcon = playPauseBtn.querySelector('.icon-play');
+    const pauseIcon = playPauseBtn.querySelector('.icon-pause');
+    if (isPlaying) {
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = '';
+      if (waveformEl) waveformEl.classList.add('playing');
+      playPauseBtn.setAttribute('aria-label', 'إيقاف مؤقت');
+    } else {
+      playIcon.style.display = '';
+      pauseIcon.style.display = 'none';
+      if (waveformEl) waveformEl.classList.remove('playing');
+      playPauseBtn.setAttribute('aria-label', 'تشغيل');
+    }
+  }
+
+  playPauseBtn.addEventListener('click', async () => {
+    if (!player.src) return;
+    if (player.paused) {
+      try { await player.play(); } catch (e) { setStatus('تعذر التشغيل. حاول مرة أخرى.', true); }
+    } else {
+      player.pause();
+    }
+  });
+
+  player.addEventListener('play', () => updatePlayState(true));
+  player.addEventListener('pause', () => updatePlayState(false));
+  player.addEventListener('ended', () => {
+    updatePlayState(false);
+    if (progressFill) progressFill.style.width = '0%';
+    if (seekBar) seekBar.value = '0';
+    if (currentTimeEl) currentTimeEl.textContent = formatTime(0);
+  });
+
+  player.addEventListener('loadedmetadata', () => {
+    if (durationEl) durationEl.textContent = formatTime(player.duration);
+    if (seekBar) seekBar.max = String(Math.floor(player.duration * 10) / 10 || 100);
+  });
+
+  player.addEventListener('timeupdate', () => {
+    const current = player.currentTime;
+    const duration = player.duration || 0;
+    const pct = duration ? (current / duration) * 100 : 0;
+    if (progressFill) progressFill.style.width = `${pct}%`;
+    if (seekBar && !seekBar.matches(':active')) {
+      seekBar.value = String(current);
+      seekBar.max = String(duration || 100);
+    }
+    if (currentTimeEl) currentTimeEl.textContent = formatTime(current);
+    if (durationEl && isFinite(duration)) durationEl.textContent = formatTime(duration);
+  });
+
+  if (seekBar) {
+    seekBar.addEventListener('input', () => {
+      const val = parseFloat(seekBar.value);
+      if (isFinite(val)) {
+        player.currentTime = val;
+        const pct = player.duration ? (val / player.duration) * 100 : 0;
+        if (progressFill) progressFill.style.width = `${pct}%`;
+        if (currentTimeEl) currentTimeEl.textContent = formatTime(val);
+      }
+    });
+  }
+
+  // Also allow tapping progress track
+  const progressTrack = document.getElementById('progressTrack');
+  if (progressTrack) {
+    progressTrack.addEventListener('click', (e) => {
+      const rect = progressTrack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const pct = x / rect.width;
+      const duration = player.duration;
+      if (isFinite(duration) && duration > 0) {
+        player.currentTime = pct * duration;
+      }
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
 // UI events
 // ---------------------------------------------------------------------------
 textEl.addEventListener('input', () => {
@@ -317,19 +458,35 @@ rate.addEventListener('input', () => {
 pitch.addEventListener('input', () => {
   document.getElementById('pitchVal').textContent = pitch.value;
 });
+voiceEl.addEventListener('change', updateVoiceMeta);
 
-clearBtn.addEventListener('click', async () => {
-  textEl.value = '';
-  count.textContent = '0 / 5000';
-  setStatus('');
-  result.classList.remove('show');
-  await cleanupPreviousAudio();
-  textEl.focus();
-});
+if (clearBtn) {
+  clearBtn.addEventListener('click', async () => {
+    textEl.value = '';
+    count.textContent = '0 / 5000';
+    setStatus('');
+    result.classList.remove('show');
+    result.setAttribute('aria-hidden', 'true');
+    await cleanupPreviousAudio();
+    textEl.focus();
+  });
+}
+
+if (settingsBtn) {
+  settingsBtn.addEventListener('click', () => {
+    setStatus('الإعدادات قريباً — يتم تطويرها حالياً.');
+    setTimeout(() => { if (statusEl.textContent.includes('الإعدادات')) setStatus(''); }, 2200);
+  });
+}
 
 generate.addEventListener('click', generateSpeech);
 saveBtn.addEventListener('click', saveMp3);
 shareBtn.addEventListener('click', shareMp3);
+
+// Init custom player
+setupCustomPlayer();
+// Init voice meta on load
+updateVoiceMeta();
 
 // ---------------------------------------------------------------------------
 // Native: network, back button, status bar, splash
@@ -337,7 +494,7 @@ shareBtn.addEventListener('click', shareMp3);
 async function initNative() {
   try {
     await StatusBar.setStyle({ style: Style.Dark });
-    await StatusBar.setBackgroundColor({ color: '#0b1020' });
+    await StatusBar.setBackgroundColor({ color: '#0B1020' });
   } catch (e) { /* ignore */ }
 
   try {
@@ -365,6 +522,7 @@ async function initNative() {
       }
       if (result.classList.contains('show')) {
         result.classList.remove('show');
+        result.setAttribute('aria-hidden', 'true');
         return;
       }
       if (!canGoBack) {

@@ -4,86 +4,146 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0B1020">
-  <meta name="description" content="NABRA AI — نَبْرَة AI — حوّل كلماتك إلى صوت ينبض بالحياة. Turn Your Words Into Living Voices.">
-  <title>NABRA AI | نَبْرَة AI — تحويل النص إلى صوت</title>
+  <meta name="description" content="NABRA AI — نَبْرَة AI — حوّل كلماتك إلى صوت ينبض بالحياة.">
+  <title>NABRA AI — نَبْرَة AI</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <main class="wrap">
-    <header>
-      <div class="brand">
-        <div class="logo" aria-hidden="true">
-          <svg viewBox="0 0 64 64" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
-            <path d="M12 48V16L28 34V16H36V48H28L12 30V48H12Z" fill="white" fill-opacity="0.98"/>
-            <!-- subtle sound wave integrated with N -->
-            <g opacity="0.92">
-              <rect x="42" y="22" width="3.2" height="20" rx="1.6" fill="white"/>
-              <rect x="47.5" y="18" width="3.2" height="28" rx="1.6" fill="white" opacity="0.92"/>
-              <rect x="53" y="24" width="3.2" height="16" rx="1.6" fill="white" opacity="0.78"/>
-            </g>
-          </svg>
+  <div class="app">
+    <!-- Top App Bar -->
+    <header class="app-bar">
+      <div class="app-bar-inner">
+        <div class="app-brand">
+          <div class="app-logo" aria-hidden="true">
+            <svg viewBox="0 0 32 32" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 22V6L11 15V6H13.5V22H11L5 13V22H5Z" fill="white"/><g opacity="0.95"><rect x="17" y="11" width="2.2" height="10" rx="1.1" fill="white"/><rect x="20.6" y="8.5" width="2.2" height="15" rx="1.1" fill="white"/><rect x="24.2" y="11.8" width="2.2" height="8.4" rx="1.1" fill="white" opacity="0.88"/></g></svg>
+          </div>
+          <div class="app-brand-text">
+            <div class="app-name">نَبْرَة AI</div>
+            <div class="app-name-en">NABRA AI</div>
+          </div>
         </div>
-        <div class="brand-text">
-          <h1>NABRA <span>AI</span></h1>
-          <div class="brand-ar">نَبْرَة AI</div>
-        </div>
+        <button class="icon-btn" id="settingsBtn" aria-label="الإعدادات">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.2M12 19v2.2M4.2 12H6.5M17.5 12H19.8M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/></svg>
+        </button>
       </div>
-      <p class="sub">حوّل كلماتك إلى صوت ينبض بالحياة.</p>
-      <p class="sub-en">Turn Your Words Into Living Voices.</p>
-      <span class="tag">✦ 8 أصوات عربية · ذكاء اصطناعي</span>
     </header>
 
-    <div class="offline-banner" id="offlineBanner" role="alert">
-      ⚠️ لا يوجد اتصال بالإنترنت. يتطلب التطبيق اتصالاً بالإنترنت لتحويل النص إلى صوت. تحقق من الاتصال وحاول مجدداً.
-    </div>
-
-    <section class="card">
-      <label for="text">النص الذي تريد تحويله</label>
-      <textarea id="text" maxlength="5000" placeholder="اكتب أو الصق النص العربي هنا...&#10;&#10;مثال: مرحباً بك في نبرة، حوّل كلماتك إلى صوت ينبض بالحياة."></textarea>
-      <div class="counter"><span>يدعم النصوص العربية</span><span id="count">0 / 5000</span></div>
-
-      <div class="grid">
-        <div class="field">
-          <label for="voice">اختر الصوت</label>
-          <select id="voice">
-            <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
-            <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
-            <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
-            <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
-            <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
-            <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
-            <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
-            <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="rate">سرعة القراءة</label>
-          <div class="range-line"><input id="rate" type="range" min="-30" max="30" value="0"><span class="range-value" id="rateVal">0%</span></div>
-        </div>
-        <div class="field">
-          <label for="pitch">حدة الصوت</label>
-          <div class="range-line"><input id="pitch" type="range" min="-20" max="20" value="0"><span class="range-value" id="pitchVal">0</span></div>
-        </div>
+    <main class="content">
+      <div class="offline-banner" id="offlineBanner" role="alert">
+        لا يوجد اتصال بالإنترنت — يتطلب التحويل اتصالاً
       </div>
 
-      <div class="actions">
-        <button class="primary" id="generate">✦ تحويل النص إلى صوت</button>
-        <button class="secondary" id="clear">مسح النص</button>
-      </div>
-      <div class="status" id="status" role="status"></div>
-
-      <div class="result" id="result">
-        <label>الصوت الناتج</label>
-        <audio id="player" controls></audio>
-        <div class="result-actions">
-          <button class="download" id="save">⬇ حفظ MP3</button>
-          <button class="share-btn" id="share">↗ مشاركة MP3</button>
+      <!-- Text Input -->
+      <section class="section">
+        <div class="section-header">
+          <h2>اكتب النص</h2>
+          <button class="text-btn" id="clear" type="button">مسح</button>
         </div>
-      </div>
-      <div class="note">تنبيه: يتطلب التحويل اتصالاً بالإنترنت. يُرسل النص إلى خدمة تحويل صوت خارجية لمعالجته؛ تجنب إدخال كلمات المرور أو المعلومات الخاصة.</div>
-    </section>
-    <footer>NABRA AI · نَبْرَة AI</footer>
-  </main>
+        <div class="card card-editor">
+          <textarea id="text" maxlength="5000" rows="6" placeholder="اكتب نصك العربي هنا...&#10;مثال: مرحباً بك في نَبْرَة — حوّل كلماتك إلى صوت ينبض بالحياة."></textarea>
+          <div class="editor-footer">
+            <span class="counter" id="count">0 / 5000</span>
+            <span class="hint">RTL · يدعم العربية</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Voice Selection -->
+      <section class="section">
+        <h2>اختر الصوت</h2>
+        <div class="card voice-card">
+          <div class="voice-selector">
+            <svg class="voice-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#AAB6D3" stroke-width="1.6"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+            <select id="voice" aria-label="اختر الصوت">
+              <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
+              <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
+              <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
+              <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
+              <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
+              <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
+              <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
+              <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
+            </select>
+            <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#AAB6D3" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div class="voice-meta" id="voiceMeta">الجزائرية · أنثى · Amina</div>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <section class="section">
+        <h2>إعدادات الصوت</h2>
+        <div class="card controls-card">
+          <div class="control">
+            <div class="control-header">
+              <span class="control-label">سرعة القراءة</span>
+              <span class="control-value" id="rateVal">0%</span>
+            </div>
+            <input id="rate" type="range" min="-30" max="30" value="0">
+            <div class="control-ticks"><span>أبطأ</span><span>طبيعي</span><span>أسرع</span></div>
+          </div>
+          <div class="control-divider"></div>
+          <div class="control">
+            <div class="control-header">
+              <span class="control-label">حدة الصوت</span>
+              <span class="control-value" id="pitchVal">0</span>
+            </div>
+            <input id="pitch" type="range" min="-20" max="20" value="0">
+            <div class="control-ticks"><span>أخفض</span><span>طبيعي</span><span>أحدّ</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Generate -->
+      <button class="primary" id="generate" type="button">
+        <span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span>
+        <span class="btn-label">تحويل النص إلى صوت</span>
+      </button>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+
+      <!-- Audio Player -->
+      <section class="card player-card" id="result" aria-hidden="true">
+        <div class="player-header">
+          <div class="player-title">الصوت الناتج</div>
+          <span class="player-badge">MP3 · جاهز</span>
+        </div>
+        <div class="player-main">
+          <button class="play-btn" id="playPause" type="button" aria-label="تشغيل">
+            <svg class="icon-play" viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M8 5.3l10 6.7-10 6.7V5.3Z"/></svg>
+            <svg class="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none"><rect x="7" y="5" width="4" height="14" rx="1"/><rect x="13" y="5" width="4" height="14" rx="1"/></svg>
+          </button>
+          <div class="player-center">
+            <div class="progress-wrap">
+              <div class="progress-track" id="progressTrack">
+                <div class="progress-fill" id="progressFill"></div>
+                <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1" aria-label="التقدم">
+              </div>
+              <div class="time-row">
+                <span id="currentTime">0:00</span>
+                <span id="duration">0:00</span>
+              </div>
+            </div>
+            <div class="waveform" id="waveform" aria-hidden="true">
+              <span style="height:22%"></span><span style="height:45%"></span><span style="height:30%"></span><span style="height:68%"></span><span style="height:40%"></span><span style="height:85%"></span><span style="height:55%"></span><span style="height:35%"></span><span style="height:72%"></span><span style="height:48%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:32%"></span><span style="height:70%"></span><span style="height:42%"></span><span style="height:58%"></span><span style="height:28%"></span><span style="height:65%"></span><span style="height:38%"></span><span style="height:80%"></span>
+            </div>
+          </div>
+        </div>
+        <audio id="player" preload="metadata"></audio>
+        <div class="player-actions">
+          <button class="btn-secondary" id="save" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v12"/><path d="M7 12l5 5 5-5"/><path d="M3 17v3h18v-3"/></svg>
+            حفظ MP3
+          </button>
+          <button class="btn-secondary" id="share" type="button">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-2.2"/><path d="M8.6 13.4l6.8 2.2"/></svg>
+            مشاركة
+          </button>
+        </div>
+      </section>
+
+      <p class="note">يُرسل النص إلى خدمة تحويل آمنة لمعالجته — تجنّب إدخال معلومات حساسة.</p>
+    </main>
+  </div>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

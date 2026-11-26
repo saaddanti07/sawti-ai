@@ -26,7 +26,7 @@ VOICES = {
     "ar-AE-HamdanNeural": {"name": "حمدان", "gender": "ذكر", "accent": "إماراتي"},
 }
 
-app = FastAPI(title="Sawti AI - Arabic Text to Speech")
+app = FastAPI(title="NABRA AI - Arabic Text to Speech")
 
 # Allow requests from the Capacitor Android WebView (and the web version).
 # The Android app runs from the https://localhost origin inside the WebView,
