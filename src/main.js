@@ -34,6 +34,48 @@ function generateDownloadFileName() {
 }
 
 // ---------------------------------------------------------------------------
+// Theme — dark / light with localStorage + system preference
+// ---------------------------------------------------------------------------
+function applyTheme(theme) {
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('nabra-theme', t); } catch (_) {}
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t === 'light' ? '#F5F6FC' : '#080D1B');
+  // Update toggle icons is handled via CSS [data-theme] selectors
+  // Update settings switcher active state
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === t);
+  });
+  // Update StatusBar for native
+  if (isNativePlatform()) {
+    try {
+      const bg = t === 'light' ? '#F5F6FC' : '#080D1B';
+      StatusBar.setBackgroundColor({ color: bg });
+      StatusBar.setStyle({ style: t === 'light' ? Style.Light : Style.Dark });
+    } catch (_) {}
+  }
+  console.log('[NABRA] theme', t);
+}
+function initTheme() {
+  // Already set via inline script, but ensure switcher reflects
+  const saved = (() => { try { return localStorage.getItem('nabra-theme'); } catch { return null; } })();
+  const systemLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const initial = saved || (systemLight ? 'light' : 'dark');
+  applyTheme(initial);
+  // Listen to system changes only if user hasn't chosen
+  try {
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+      try {
+        if (!localStorage.getItem('nabra-theme')) applyTheme(e.matches ? 'light' : 'dark');
+      } catch (_) {}
+    });
+  } catch (_) {}
+}
+// Init early
+initTheme();
+
+// ---------------------------------------------------------------------------
 // API base URL — centralized single source of truth
 // ---------------------------------------------------------------------------
 // SAWTI_API_BASE_URL in src/config.js is the single configurable value:
@@ -120,7 +162,7 @@ const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 const waveformEl = document.getElementById('waveform');
 
-const GENERATE_LABEL_HTML = '<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">تحويل النص إلى صوت</span>';
+const GENERATE_LABEL_HTML = '<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">إنشاء الصوت</span>';
 const TTS_TIMEOUT_MS = 120000; // Render free tier may need time to wake up
 const VOICES_TIMEOUT_MS = 30000;
 
@@ -128,6 +170,7 @@ let currentUrl = null; // object URL for <audio>
 let currentBlob = null; // last generated MP3 blob
 let nativeFileUri = null; // cached file:// URI written via Filesystem
 let nativeFileName = 'nabra-ai.mp3';
+let currentFileName = null; // last generated timestamped filename for display/download
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -149,10 +192,7 @@ function updateVoiceMeta() {
   if (!voiceMeta || !voiceEl) return;
   const opt = voiceEl.options[voiceEl.selectedIndex];
   if (!opt) return;
-  // opt.text is like "أمينة — جزائرية (أنثى)"
   const text = opt.textContent.trim();
-  // Extract for meta: keep as is but shorten
-  // Show as "جزائرية · أنثى · Amina" - derive English id for hint
   const id = voiceEl.value; // ar-DZ-AminaNeural
   const eng = id.split('-').pop().replace('Neural','');
   const parts = text.split(' — ');
@@ -161,9 +201,25 @@ function updateVoiceMeta() {
     const rest = parts[1]; // "جزائرية (أنثى)"
     const accent = rest.split(' (')[0];
     const gender = rest.includes('(') ? rest.split('(')[1].replace(')','') : '';
-    voiceMeta.textContent = `${accent} · ${gender} · ${eng}`;
+    voiceMeta.textContent = `${name} · ${accent} · ${gender}`;
   } else {
     voiceMeta.textContent = text;
+  }
+  // Premium avatar — color by gender, initial letter
+  const avatar = document.getElementById('voiceAvatar');
+  if (avatar) {
+    const isFemale = voiceMeta.textContent.includes('أنثى');
+    const bg = isFemale ? '#8B5CF6' : '#4F83FF';
+    const name = parts[0] ? parts[0].trim().charAt(0) : 'A';
+    avatar.style.background = bg;
+    avatar.style.color = '#FFFFFF';
+    const img = avatar.querySelector('img');
+    if (img) {
+      avatar.innerHTML = `<span style="font:700 14px Tahoma">${name}</span>`;
+      avatar.style.display = 'inline-flex';
+      avatar.style.alignItems = 'center';
+      avatar.style.justifyContent = 'center';
+    }
   }
 }
 
@@ -397,6 +453,12 @@ async function generateSpeech() {
     try { if (typeof switchTab === 'function') switchTab('home'); } catch (_) {}
     result.classList.add('show');
     result.setAttribute('aria-hidden', 'false');
+    // Set displayed filename for premium result card
+    currentFileName = generateDownloadFileName();
+    const fileEl = document.getElementById('playerFileName');
+    if (fileEl) fileEl.textContent = currentFileName;
+    const badge = document.getElementById('playerBadge');
+    if (badge) badge.textContent = `MP3 · ${(currentBlob.size/1024).toFixed(0)}KB`;
     setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
     setStatus('تم إنشاء الصوت بنجاح. استمع الآن أو احفظه أو شاركه.');
     try { await player.play(); } catch (e) {
@@ -479,8 +541,9 @@ async function saveMp3() {
 
   try {
     if (isNativePlatform()) {
-      // Native Android: save directly to public Downloads via MediaStore
-      const fileName = generateDownloadFileName();
+      // Native Android: save directly to public Downloads via MediaStore — reuse displayed filename if exists
+      const fileName = currentFileName || generateDownloadFileName();
+      if (!currentFileName) currentFileName = fileName;
       console.log('[NABRA] saveMp3 native start', { fileName, blobSize: currentBlob.size, blobType: currentBlob.type });
       const base64 = await blobToBase64(currentBlob);
       // Verify base64 decodes to reasonable size
@@ -548,7 +611,8 @@ async function saveMp3() {
         currentUrl = URL.createObjectURL(currentBlob);
         player.src = currentUrl;
       }
-      const fileName = generateDownloadFileName();
+      const fileName = currentFileName || generateDownloadFileName();
+      if (!currentFileName) currentFileName = fileName;
       console.log('[NABRA] saveMp3 web download', { fileName, size: currentBlob.size });
       const a = document.createElement('a');
       a.href = currentUrl;
@@ -786,6 +850,22 @@ if (settingsBtn) {
   });
 }
 
+// Theme toggle — header and settings switcher
+const themeToggle = document.getElementById('themeToggle');
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+  });
+}
+document.querySelectorAll('.theme-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.getAttribute('data-theme');
+    if (t) applyTheme(t);
+  });
+})
+
 generate.addEventListener('click', generateSpeech);
 saveBtn.addEventListener('click', saveMp3);
 shareBtn.addEventListener('click', shareMp3);
@@ -854,8 +934,6 @@ async function initNative() {
 if (isNativePlatform()) {
   initNative();
 } else {
-  window.addEventListener('offline', () => setOffline(true));
-  window.addEventListener('online', () => setOffline(false));
   if (navigator.onLine === false) setOffline(true);
 }
 
