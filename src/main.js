@@ -18,6 +18,21 @@ function isNativePlatform() {
 }
 const isNative = isNativeStatic; // keep for backward compat where used synchronously, but prefer isNativePlatform() at call time
 
+// Native Download helper — MediaStore/Downloads for Android 10+ (no permission), legacy for older
+const NabraDownload = Capacitor.registerPlugin('NabraDownload');
+let isSaving = false;
+function generateDownloadFileName() {
+  const now = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const y = now.getFullYear();
+  const m = pad(now.getMonth() + 1);
+  const d = pad(now.getDate());
+  const hh = pad(now.getHours());
+  const mm = pad(now.getMinutes());
+  const ss = pad(now.getSeconds());
+  return `NABRA_AI_${y}${m}${d}_${hh}${mm}${ss}.mp3`;
+}
+
 // ---------------------------------------------------------------------------
 // API base URL — centralized single source of truth
 // ---------------------------------------------------------------------------
@@ -430,37 +445,132 @@ async function ensureNativeFile() {
 }
 
 async function saveMp3() {
+  if (isSaving) {
+    console.log('[NABRA] download already in progress, ignoring duplicate tap');
+    return;
+  }
   if (!currentBlob) {
     setStatus('لا يوجد صوت لحفظه بعد. حوّل النص إلى صوت أولاً.', true);
     return;
   }
-  if (isNativePlatform()) {
-    try {
-      const uri = await ensureNativeFile();
-      // Open the native share sheet so the user can save the file
-      // to Downloads / Drive / etc. (no storage permission needed).
-      await Share.share({
-        title: 'NABRA AI',
-        url: uri,
-        dialogTitle: 'حفظ ملف MP3',
-      });
-      setStatus('تم تجهيز الملف للحفظ. اختر مكان الحفظ من القائمة.');
-    } catch (err) {
-      if (err && (err.message || '').toLowerCase().includes('cancel')) {
-        setStatus('تم إلغاء الحفظ.');
-      } else {
-        setStatus('تعذر حفظ الملف. حاول مرة أخرى.', true);
+  // Validate that blob is actual audio, not JSON/HTML error
+  if (currentBlob.size === 0) {
+    console.error('[NABRA] saveMp3 empty blob', { size: currentBlob.size, type: currentBlob.type });
+    setStatus('الملف الصوتي فارغ. حاول توليد الصوت مرة أخرى.', true);
+    return;
+  }
+  if (currentBlob.type && !currentBlob.type.includes('audio') && currentBlob.type.includes('json')) {
+    console.error('[NABRA] saveMp3 wrong mime', { type: currentBlob.type, size: currentBlob.size });
+    setStatus('الملف ليس صوتاً صالحاً. حاول توليد الصوت مرة أخرى.', true);
+    return;
+  }
+  // WebView Blob URLs may have type '' — allow if size > 1KB
+  if (currentBlob.size < 1024) {
+    console.warn('[NABRA] saveMp3 small file, may be error', { size: currentBlob.size, type: currentBlob.type });
+  }
+
+  isSaving = true;
+  const originalBtnHTML = saveBtn.innerHTML;
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> جاري الحفظ...';
+  // Also disable generate to avoid race? Keep generate enabled
+
+  try {
+    if (isNativePlatform()) {
+      // Native Android: save directly to public Downloads via MediaStore
+      const fileName = generateDownloadFileName();
+      console.log('[NABRA] saveMp3 native start', { fileName, blobSize: currentBlob.size, blobType: currentBlob.type });
+      const base64 = await blobToBase64(currentBlob);
+      // Verify base64 decodes to reasonable size
+      if (!base64 || base64.length < 100) {
+        throw new Error('Base64 conversion failed or file too small');
       }
+      try {
+        const result = await NabraDownload.saveToDownloads({
+          data: base64,
+          fileName: fileName,
+          mimeType: 'audio/mpeg'
+        });
+        console.log('[NABRA] saveToDownloads success', result);
+        setStatus('تم حفظ الملف الصوتي في مجلد التنزيلات', false);
+      } catch (nativeErr) {
+        console.error('[NABRA] NabraDownload.saveToDownloads failed', {
+          error: nativeErr && nativeErr.message,
+          code: nativeErr && nativeErr.code,
+          stack: nativeErr && nativeErr.stack && String(nativeErr.stack).slice(0, 800)
+        });
+        // Fallback 1: try Filesystem ExternalStorage/Download (legacy)
+        // Fallback 2: try Documents (app-scoped but visible on Android 11+)
+        let savedViaFallback = false;
+        let fallbackError = null;
+        const fallbackFileName = fileName;
+        // Try ExternalStorage Download first (Android 9 and below, or if plugin misconfigured)
+        try {
+          console.log('[NABRA] saveMp3 fallback ExternalStorage Download', fallbackFileName);
+          const w = await Filesystem.writeFile({
+            path: `Download/${fallbackFileName}`,
+            data: base64,
+            directory: Directory.ExternalStorage
+          });
+          console.log('[NABRA] fallback ExternalStorage success', w);
+          savedViaFallback = true;
+          setStatus('تم حفظ الملف الصوتي في مجلد التنزيلات', false);
+        } catch (e1) {
+          fallbackError = e1;
+          console.warn('[NABRA] fallback ExternalStorage failed', e1 && e1.message);
+          // Fallback 2: Documents (always writable, files appear in Documents)
+          try {
+            console.log('[NABRA] saveMp3 fallback Documents', fallbackFileName);
+            const w2 = await Filesystem.writeFile({
+              path: fallbackFileName,
+              data: base64,
+              directory: Directory.Documents
+            });
+            console.log('[NABRA] fallback Documents success', w2);
+            savedViaFallback = true;
+            setStatus('تم حفظ الملف الصوتي في مجلد المستندات', false);
+          } catch (e2) {
+            console.error('[NABRA] fallback Documents failed', e2 && e2.message);
+            fallbackError = e2;
+          }
+        }
+        if (!savedViaFallback) {
+          const tech = (nativeErr && nativeErr.message) || (fallbackError && fallbackError.message) || 'unknown';
+          throw new Error('فشل الحفظ في التنزيلات: ' + tech);
+        }
+      }
+    } else {
+      // Web fallback: anchor download with proper filename
+      if (!currentUrl) {
+        // Recreate URL if missing
+        currentUrl = URL.createObjectURL(currentBlob);
+        player.src = currentUrl;
+      }
+      const fileName = generateDownloadFileName();
+      console.log('[NABRA] saveMp3 web download', { fileName, size: currentBlob.size });
+      const a = document.createElement('a');
+      a.href = currentUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setStatus('بدأ تنزيل ملف MP3.', false);
     }
-  } else {
-    // Web fallback: normal browser download.
-    const a = document.createElement('a');
-    a.href = currentUrl;
-    a.download = 'nabra-ai.mp3';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setStatus('بدأ تنزيل ملف MP3.');
+  } catch (err) {
+    const msg = (err && err.message) ? err.message : String(err);
+    console.error('[NABRA] saveMp3 error', { error: msg, stack: err && err.stack && String(err.stack).slice(0, 800) });
+    if (msg.toLowerCase().includes('cancel')) {
+      setStatus('تم إلغاء الحفظ.');
+    } else if (msg.includes('تم حفظ')) {
+      setStatus(msg, true);
+    } else {
+      // Keep user-friendly Arabic, log technical details
+      setStatus('تعذر حفظ الملف. تحقق من المساحة وحاول مرة أخرى. (' + msg.slice(0, 120) + ')', true);
+    }
+  } finally {
+    isSaving = false;
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = originalBtnHTML;
   }
 }
 
