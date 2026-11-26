@@ -8,30 +8,74 @@ import { App } from '@capacitor/app';
 import { Network } from '@capacitor/network';
 import { SAWTI_API_BASE_URL } from './config.js';
 
-const isNative = Capacitor.isNativePlatform();
+const isNativeStatic = Capacitor.isNativePlatform();
+function isNativePlatform() {
+  try {
+    return Capacitor.isNativePlatform();
+  } catch (_) {
+    return isNativeStatic;
+  }
+}
+const isNative = isNativeStatic; // keep for backward compat where used synchronously, but prefer isNativePlatform() at call time
 
 // ---------------------------------------------------------------------------
-// API base URL
+// API base URL — centralized single source of truth
 // ---------------------------------------------------------------------------
-// On the web (Render) the app uses relative paths (/api/...) so the original
-// website keeps working unchanged. Inside the Android app the UI is served
-// from https://localhost, so absolute URLs pointing at the Render backend
-// (SAWTI_API_BASE_URL in config.js) are required.
-const API_BASE = isNative ? SAWTI_API_BASE_URL.replace(/\/+$/, '') : '';
-// Android must have a real https://*.onrender.com URL; web uses relative paths.
-const API_CONFIGURED = isNative
-  ? (() => {
-      try {
-        const u = new URL(API_BASE);
-        return u.protocol === 'https:' && u.hostname.endsWith('.onrender.com') && (u.pathname === '/' || u.pathname === '');
-      } catch {
-        return false;
+// SAWTI_API_BASE_URL in src/config.js is the single configurable value:
+//   https://sawti-ai.onrender.com
+// Android WebView (capacitor:// or https://localhost) MUST use absolute URLs
+// because relative paths resolve to the local WebView (https://localhost/api/... → 404).
+// The production website at https://sawti-ai.onrender.com uses same-origin
+// relative paths (or absolute to same host) — both work. We detect native
+// at call time (not only import time) for robustness if the bridge loads late.
+const API_BASE_CANONICAL = SAWTI_API_BASE_URL.replace(/\/+$/, '');
+
+function getApiBase() {
+  // Re-evaluate native status at call time for robustness (bridge may load late).
+  let native = isNativePlatform();
+  // Fallback: WebView with localhost/capacitor origin is definitely native
+  if (!native) {
+    try {
+      const origin = window.location.origin || '';
+      const href = window.location.href || '';
+      if (
+        origin.includes('capacitor://') ||
+        origin.includes('ionic://') ||
+        (origin.includes('localhost') && window.Capacitor) ||
+        href.includes('capacitor://')
+      ) {
+        native = true;
       }
-    })()
-  : true;
+    } catch (_) {}
+  }
+  // Centralized decision: native → absolute production URL, web → relative (same-origin)
+  // Both paths are derived from the single SAWTI_API_BASE_URL constant.
+  return native ? API_BASE_CANONICAL : '';
+}
+
+function isApiConfigured() {
+  // On web, relative paths are always considered configured.
+  // On native, verify the absolute URL is a valid https://*.onrender.com.
+  const base = getApiBase();
+  if (!base) return true; // web → relative, ok
+  try {
+    const u = new URL(base);
+    return u.protocol === 'https:' && u.hostname.endsWith('.onrender.com') && (u.pathname === '/' || u.pathname === '');
+  } catch {
+    return false;
+  }
+}
 
 function apiUrl(path) {
-  return `${API_BASE}${path}`;
+  const base = getApiBase();
+  const full = `${base}${path}`;
+  // Diagnostic log for Android WebView console (chrome://inspect)
+  try {
+    console.log(`[NABRA API] ${full} (platform=${Capacitor.getPlatform()} native=${Capacitor.isNativePlatform()} origin=${window.location.origin})`);
+  } catch (_) {
+    console.log(`[NABRA API] ${full}`);
+  }
+  return full;
 }
 
 // ---------------------------------------------------------------------------
@@ -109,14 +153,26 @@ function updateVoiceMeta() {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Helpers — with diagnostics
 // ---------------------------------------------------------------------------
+function logApiDiagnostic(label, details) {
+  try {
+    console.log(`[NABRA][${label}]`, details);
+  } catch (_) {}
+  // Also log to remote if needed, but never expose secrets.
+}
+
 async function fetchWithTimeout(url, options = {}, timeoutMs = TTS_TIMEOUT_MS) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const method = (options && options.method) || 'GET';
+  logApiDiagnostic('fetch-start', { url, method, timeoutMs });
   try {
-    return await fetch(url, { ...options, signal: controller.signal });
+    const resp = await fetch(url, { ...options, signal: controller.signal });
+    logApiDiagnostic('fetch-response', { url, method, status: resp.status, ok: resp.ok, contentType: resp.headers.get('content-type') });
+    return resp;
   } catch (err) {
+    logApiDiagnostic('fetch-error', { url, method, error: err && err.message, name: err && err.name, stack: err && err.stack && String(err.stack).slice(0, 600) });
     if (err && err.name === 'AbortError') {
       throw new Error('timeout');
     }
@@ -124,6 +180,17 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = TTS_TIMEOUT_MS) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+function getHttpArabicMessage(status, detail) {
+  if (detail && typeof detail === 'string' && detail.trim()) return detail;
+  if (status === 400) return 'البيانات المدخلة غير صحيحة. تحقق من النص والصوت المختار ثم حاول مجدداً. (400)';
+  if (status === 404) return 'خدمة الصوت غير متاحة مؤقتاً. حاول مجدداً بعد قليل. (404)';
+  if (status === 429) return 'تم تجاوز الحد المسموح. انتظر قليلاً ثم حاول. (429)';
+  if (status === 502 || status === 503 || status === 504) return 'الخادم مشغول حالياً أو يستيقظ من وضع النوم. انتظر 30 ثانية وحاول مجدداً. (5xx)';
+  if (status >= 500) return `خطأ في الخادم. حاول مجدداً بعد قليل. (${status})`;
+  if (status >= 400) return `تعذر إتمام الطلب. (${status})`;
+  return 'حدث خطأ أثناء إنشاء الصوت.';
 }
 
 function blobToBase64(blob) {
@@ -155,7 +222,7 @@ async function cleanupPreviousAudio() {
     URL.revokeObjectURL(currentUrl);
     currentUrl = null;
   }
-  if (isNative && nativeFileUri) {
+  if (isNativePlatform() && nativeFileUri) {
     try {
       await Filesystem.deleteFile({ path: nativeFileName, directory: Directory.Data });
     } catch (e) {
@@ -167,17 +234,25 @@ async function cleanupPreviousAudio() {
 }
 
 // ---------------------------------------------------------------------------
-// Voices — loaded from GET /api/voices (fallback: built-in list)
+// Voices — loaded from GET /api/voices (centralized absolute URL on Android)
+// Uses apiUrl('/api/voices') which resolves to https://sawti-ai.onrender.com/api/voices on native.
 // ---------------------------------------------------------------------------
 async function loadVoices() {
-  if (!API_CONFIGURED) {
-    setStatus('تنبيه: لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL.');
+  if (!isApiConfigured()) {
+    const msg = 'تنبيه: لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL.';
+    setStatus(msg);
+    console.error('[NABRA] API not configured', { base: API_BASE_CANONICAL, origin: window.location.origin });
     return;
   }
+  const url = apiUrl('/api/voices');
   try {
-    const response = await fetchWithTimeout(apiUrl('/api/voices'), {}, VOICES_TIMEOUT_MS);
+    const response = await fetchWithTimeout(url, { method: 'GET', headers: { 'Accept': 'application/json' } }, VOICES_TIMEOUT_MS);
     if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+      let detail = '';
+      try { const data = await response.json(); detail = data && data.detail; } catch (_) {}
+      const msg = getHttpArabicMessage(response.status, detail);
+      console.error('[NABRA] voices HTTP error', { url, status: response.status, detail });
+      throw new Error(msg);
     }
     const voices = await response.json();
     if (Array.isArray(voices) && voices.length > 0) {
@@ -191,15 +266,35 @@ async function loadVoices() {
       }
       if (previous) voiceEl.value = previous;
       updateVoiceMeta();
+      console.log('[NABRA] voices loaded', voices.length);
     }
   } catch (err) {
     // Keep the built-in voice list so the UI stays usable offline.
-    setStatus('تعذر تحميل الأصوات من الخادم. يتم استخدام قائمة الأصوات الافتراضية — تحقق من الاتصال بالإنترنت.');
+    // Diagnostics: distinguish network/CORS vs HTTP
+    const isTimeout = err && err.message === 'timeout';
+    const isTypeError = err instanceof TypeError;
+    const urlInfo = url;
+    if (isTimeout) {
+      console.error('[NABRA] voices timeout', { url: urlInfo, error: err.message });
+      setStatus('انتهت مهلة تحميل الأصوات. قد يكون الخادم يستيقظ — حاول مجدداً. يتم استخدام القائمة الافتراضية.');
+    } else if (isTypeError) {
+      // CORS or network failure on Android WebView
+      console.error('[NABRA] voices network/CORS error', { url: urlInfo, error: String(err), name: err.name });
+      setStatus('تعذر الاتصال بالخادم لتحميل الأصوات (قد يكون السبب الشبكة أو CORS). يتم استخدام القائمة الافتراضية — تحقق من الإنترنت.', true);
+    } else {
+      console.error('[NABRA] voices error', { url: urlInfo, error: err && err.message });
+      // HTTP error message already Arabic
+      const msg = (err && err.message && err.message.includes('(')) ? err.message : 'تعذر تحميل الأصوات من الخادم. يتم استخدام القائمة الافتراضية — تحقق من الاتصال.';
+      setStatus(msg);
+    }
   }
 }
 
 // ---------------------------------------------------------------------------
-// Generate speech — POST /api/tts
+// Generate speech — POST /api/tts (uses centralized absolute URL on Android)
+// Exact request: POST https://sawti-ai.onrender.com/api/tts
+// Body: { text, voice, rate, pitch }  Headers: Content-Type application/json
+// Response: audio/mpeg blob.
 // ---------------------------------------------------------------------------
 async function generateSpeech() {
   const text = textEl.value.trim();
@@ -208,8 +303,10 @@ async function generateSpeech() {
     textEl.focus();
     return;
   }
-  if (!API_CONFIGURED) {
-    setStatus('لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL ثم أعد بناء التطبيق.', true);
+  if (!isApiConfigured()) {
+    const msg = 'لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL ثم أعد بناء التطبيق.';
+    setStatus(msg, true);
+    console.error('[NABRA] API not configured', { base: API_BASE_CANONICAL, origin: window.location.origin });
     return;
   }
   if (navigator.onLine === false) {
@@ -217,7 +314,7 @@ async function generateSpeech() {
     return;
   }
 
-  if (isNative) {
+  if (isNativePlatform()) {
     try { await Keyboard.hide(); } catch (e) { /* ignore */ }
   }
 
@@ -228,45 +325,86 @@ async function generateSpeech() {
   result.setAttribute('aria-hidden', 'true');
   await cleanupPreviousAudio();
 
+  const url = apiUrl('/api/tts');
+  const payload = {
+    text,
+    voice: voiceEl.value,
+    rate: Number(rate.value),
+    pitch: Number(pitch.value),
+  };
+  logApiDiagnostic('tts-request', { url, voice: payload.voice, textLength: payload.text.length, rate: payload.rate, pitch: payload.pitch });
+
   try {
-    const response = await fetchWithTimeout(apiUrl('/api/tts'), {
+    const response = await fetchWithTimeout(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        voice: voiceEl.value,
-        rate: Number(rate.value),
-        pitch: Number(pitch.value),
-      }),
+      headers: { 'Content-Type': 'application/json', 'Accept': 'audio/mpeg, application/json' },
+      body: JSON.stringify(payload),
     }, TTS_TIMEOUT_MS);
 
     if (!response.ok) {
-      let msg = 'حدث خطأ أثناء إنشاء الصوت.';
+      let detail = '';
+      let status = response.status;
+      const ct = response.headers.get('content-type') || '';
       try {
-        const data = await response.json();
-        if (data && data.detail) msg = data.detail;
-      } catch (e) { /* keep default message */ }
+        if (ct.includes('application/json')) {
+          const data = await response.json();
+          detail = (data && data.detail) || '';
+        } else {
+          const txt = await response.text();
+          detail = txt.slice(0, 400);
+        }
+      } catch (e) { /* ignore */ }
+      console.error('[NABRA] tts HTTP error', { url, status, detail, contentType: ct });
+      const msg = getHttpArabicMessage(status, detail);
       throw new Error(msg);
     }
 
+    const contentType = response.headers.get('content-type') || '';
+    if (!contentType.includes('audio')) {
+      console.warn('[NABRA] tts unexpected content-type', { url, contentType });
+    }
     const blob = await response.blob();
+    if (!blob || blob.size === 0) {
+      console.error('[NABRA] tts empty blob', { url, size: blob && blob.size, type: blob && blob.type });
+      throw new Error('الخادم أعاد استجابة فارغة. حاول مجدداً.');
+    }
+    logApiDiagnostic('tts-blob', { url, size: blob.size, type: blob.type });
     currentBlob = blob;
     currentUrl = URL.createObjectURL(blob);
     player.src = currentUrl;
-    // Load metadata for duration
+    // Handle audio playback errors explicitly
+    player.onerror = (e) => {
+      console.error('[NABRA] audio playback error', { url, error: e, code: player.error && player.error.code, message: player.error && player.error.message });
+      setStatus('حدث خطأ أثناء تشغيل الصوت. حاول حفظ الملف وتشغيله ببرنامج خارجي.', true);
+    };
     player.load();
     result.classList.add('show');
     result.setAttribute('aria-hidden', 'false');
-    // scroll player into view on mobile
     setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
     setStatus('تم إنشاء الصوت بنجاح. استمع الآن أو احفظه أو شاركه.');
-    try { await player.play(); } catch (e) { /* autoplay may be blocked; user can press play */ }
+    try { await player.play(); } catch (e) {
+      console.warn('[NABRA] autoplay blocked', e);
+    }
   } catch (err) {
-    if (err && err.message === 'timeout') {
-      setStatus('انتهت مهلة الطلب. قد يكون الخادم يستيقظ من وضع النوم — انتظر قليلاً وحاول مجدداً.', true);
-    } else if (err instanceof TypeError) {
-      setStatus('تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مجدداً.', true);
+    const isTimeout = err && err.message === 'timeout';
+    const isTypeError = err instanceof TypeError;
+    const urlInfo = url;
+    if (isTimeout) {
+      console.error('[NABRA] tts timeout', { url: urlInfo, timeoutMs: TTS_TIMEOUT_MS });
+      setStatus('انتهت مهلة الطلب. قد يكون الخادم يستيقظ من وضع النوم — انتظر 30 ثانية وحاول مجدداً.', true);
+    } else if (isTypeError) {
+      // Network failure or CORS block in WebView — the most common Android issue
+      const msg = String(err && err.message || err);
+      const isCorsHint = msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed');
+      console.error('[NABRA] tts network/CORS error', { url: urlInfo, error: msg, name: err.name, stack: err.stack && String(err.stack).slice(0, 800) });
+      if (isCorsHint) {
+        setStatus('تعذر الاتصال بالخادم (فشل الشبكة أو حجب CORS). تحقق من الإنترنت وأن الخادم يسمح بطلبات https://localhost. افتح chrome://inspect لمزيد التفاصيل.', true);
+      } else {
+        setStatus('تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مجدداً.', true);
+      }
     } else {
+      // HTTP 400/500 already mapped to Arabic via getHttpArabicMessage
+      console.error('[NABRA] tts error', { url: urlInfo, error: err && err.message });
       setStatus(err.message || 'تعذر الاتصال بالخادم. حاول مرة أخرى.', true);
     }
   } finally {
@@ -296,7 +434,7 @@ async function saveMp3() {
     setStatus('لا يوجد صوت لحفظه بعد. حوّل النص إلى صوت أولاً.', true);
     return;
   }
-  if (isNative) {
+  if (isNativePlatform()) {
     try {
       const uri = await ensureNativeFile();
       // Open the native share sheet so the user can save the file
@@ -331,7 +469,7 @@ async function shareMp3() {
     setStatus('لا يوجد صوت لمشاركته بعد. حوّل النص إلى صوت أولاً.', true);
     return;
   }
-  if (isNative) {
+  if (isNativePlatform()) {
     try {
       const uri = await ensureNativeFile();
       await Share.share({
@@ -536,7 +674,7 @@ async function initNative() {
   } catch (e) { /* ignore */ }
 }
 
-if (isNative) {
+if (isNativePlatform()) {
   initNative();
 } else {
   window.addEventListener('offline', () => setOffline(true));

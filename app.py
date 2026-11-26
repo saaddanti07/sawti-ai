@@ -28,19 +28,26 @@ VOICES = {
 
 app = FastAPI(title="NABRA AI - Arabic Text to Speech")
 
-# Allow requests from the Capacitor Android WebView (and the web version).
-# The Android app runs from the https://localhost origin inside the WebView,
-# so only those specific origins are allowed (no wildcard).
+# Allow requests from the Capacitor Android WebView and the production website.
+# Android WebView origin is https://localhost (androidScheme: https, hostname: localhost)
+# but we also support fallback schemes and localhost with any port for dev/testing.
+# No wildcard origin with credentials — allow_credentials stays False.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://localhost",       # Capacitor Android WebView origin
-        "http://localhost",        # local development / fallback
-        "capacitor://localhost",   # Capacitor custom scheme
+        "https://localhost",
+        "http://localhost",
+        "capacitor://localhost",
+        "ionic://localhost",
+        "https://sawti-ai.onrender.com",
+        "http://sawti-ai.onrender.com",
     ],
+    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?|capacitor://.*|ionic://.*|https?://.*\.onrender\.com",
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type", "Accept"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 class SpeechRequest(BaseModel):
@@ -85,7 +92,7 @@ async def text_to_speech(payload: SpeechRequest):
     return FileResponse(
         path=output_path,
         media_type="audio/mpeg",
-        filename="sawti-ai.mp3",
+        filename="nabra-ai.mp3",
         background=BackgroundTask(output_path.unlink, missing_ok=True)
     )
 
