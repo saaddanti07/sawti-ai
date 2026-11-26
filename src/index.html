@@ -9,140 +9,217 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div class="app">
-    <!-- Top App Bar -->
-    <header class="app-bar">
-      <div class="app-bar-inner">
-        <div class="app-brand">
-          <div class="app-logo" aria-hidden="true">
-            <svg viewBox="0 0 32 32" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 22V6L11 15V6H13.5V22H11L5 13V22H5Z" fill="white"/><g opacity="0.95"><rect x="17" y="11" width="2.2" height="10" rx="1.1" fill="white"/><rect x="20.6" y="8.5" width="2.2" height="15" rx="1.1" fill="white"/><rect x="24.2" y="11.8" width="2.2" height="8.4" rx="1.1" fill="white" opacity="0.88"/></g></svg>
+  <div class="device-shell">
+    <div class="app" id="appRoot">
+      <!-- Compact Android App Bar -->
+      <header class="app-bar">
+        <div class="app-bar-inner">
+          <div class="app-brand">
+            <div class="app-logo" aria-hidden="true">
+              <svg viewBox="0 0 32 32" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 22V6L11 15V6H13.5V22H11L5 13V22H5Z" fill="white"/><g opacity="0.95"><rect x="17" y="11" width="2.2" height="10" rx="1.1" fill="white"/><rect x="20.6" y="8.5" width="2.2" height="15" rx="1.1" fill="white"/><rect x="24.2" y="11.8" width="2.2" height="8.4" rx="1.1" fill="white" opacity="0.88"/></g></svg>
+            </div>
+            <div class="app-brand-text">
+              <div class="app-name">نَبْرَة AI</div>
+              <div class="app-name-en">NABRA AI</div>
+            </div>
           </div>
-          <div class="app-brand-text">
-            <div class="app-name">نَبْرَة AI</div>
-            <div class="app-name-en">NABRA AI</div>
-          </div>
+          <button class="icon-btn" id="settingsBtn" aria-label="الإعدادات" type="button">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.2M12 19v2.2M4.2 12H6.5M17.5 12H19.8M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/></svg>
+          </button>
         </div>
-        <button class="icon-btn" id="settingsBtn" aria-label="الإعدادات">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.2M12 19v2.2M4.2 12H6.5M17.5 12H19.8M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/></svg>
+      </header>
+
+      <!-- Main Tab Container -->
+      <div class="tab-container">
+        <!-- HOME TAB — main functional screen -->
+        <main class="content tab-panel active" id="tab-home" data-tab="home">
+          <div class="offline-banner" id="offlineBanner" role="alert">
+            لا يوجد اتصال بالإنترنت — يتطلب التحويل اتصالاً
+          </div>
+
+          <!-- A. Text Input Card -->
+          <section class="section">
+            <div class="section-header">
+              <h2>اكتب النص</h2>
+              <button class="text-btn" id="clear" type="button">مسح</button>
+            </div>
+            <div class="card card-editor">
+              <textarea id="text" maxlength="5000" rows="6" placeholder="اكتب النص الذي تريد تحويله إلى صوت..."></textarea>
+              <div class="editor-footer">
+                <span class="counter" id="count">0 / 5000</span>
+                <span class="hint">يدعم العربية · 5000 حرف كحد أقصى</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- B. Voice Selection -->
+          <section class="section">
+            <h2>اختر الصوت</h2>
+            <div class="card voice-card">
+              <div class="voice-selector">
+                <svg class="voice-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#AAB6D3" stroke-width="1.6"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
+                <select id="voice" aria-label="اختر الصوت">
+                  <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
+                  <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
+                  <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
+                  <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
+                  <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
+                  <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
+                  <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
+                  <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
+                </select>
+                <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#AAB6D3" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+              <div class="voice-meta" id="voiceMeta">الجزائرية · أنثى · Amina</div>
+            </div>
+          </section>
+
+          <!-- C. Voice Settings — Collapsible -->
+          <section class="section">
+            <button class="collapsible-header" id="settingsToggle" type="button" aria-expanded="false" aria-controls="settingsPanel">
+              <h2>إعدادات الصوت</h2>
+              <span class="collapsible-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </span>
+            </button>
+            <div class="card controls-card collapsible-panel" id="settingsPanel" hidden>
+              <div class="control">
+                <div class="control-header">
+                  <span class="control-label">سرعة القراءة</span>
+                  <span class="control-value" id="rateVal">0%</span>
+                </div>
+                <input id="rate" type="range" min="-30" max="30" value="0">
+                <div class="control-ticks"><span>أبطأ</span><span>طبيعي</span><span>أسرع</span></div>
+              </div>
+              <div class="control-divider"></div>
+              <div class="control">
+                <div class="control-header">
+                  <span class="control-label">حدة الصوت</span>
+                  <span class="control-value" id="pitchVal">0</span>
+                </div>
+                <input id="pitch" type="range" min="-20" max="20" value="0">
+                <div class="control-ticks"><span>أخفض</span><span>طبيعي</span><span>أحدّ</span></div>
+              </div>
+            </div>
+            <div class="settings-collapsed-hint" id="settingsHint">السرعة 0% · الحدة 0</div>
+          </section>
+
+          <!-- D. Generate Button -->
+          <button class="primary" id="generate" type="button">
+            <span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span>
+            <span class="btn-label">تحويل النص إلى صوت</span>
+          </button>
+          <div class="status" id="status" role="status" aria-live="polite"></div>
+
+          <!-- Audio Player — dedicated card -->
+          <section class="card player-card" id="result" aria-hidden="true">
+            <div class="player-header">
+              <div class="player-title">الصوت الناتج</div>
+              <span class="player-badge">MP3 · جاهز</span>
+            </div>
+            <div class="player-main">
+              <button class="play-btn" id="playPause" type="button" aria-label="تشغيل">
+                <svg class="icon-play" viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M8 5.3l10 6.7-10 6.7V5.3Z"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none"><rect x="7" y="5" width="4" height="14" rx="1"/><rect x="13" y="5" width="4" height="14" rx="1"/></svg>
+              </button>
+              <div class="player-center">
+                <div class="progress-wrap">
+                  <div class="progress-track" id="progressTrack">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1" aria-label="التقدم">
+                  </div>
+                  <div class="time-row">
+                    <span id="currentTime">0:00</span>
+                    <span id="duration">0:00</span>
+                  </div>
+                </div>
+                <div class="waveform" id="waveform" aria-hidden="true">
+                  <span style="height:22%"></span><span style="height:45%"></span><span style="height:30%"></span><span style="height:68%"></span><span style="height:40%"></span><span style="height:85%"></span><span style="height:55%"></span><span style="height:35%"></span><span style="height:72%"></span><span style="height:48%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:32%"></span><span style="height:70%"></span><span style="height:42%"></span><span style="height:58%"></span><span style="height:28%"></span><span style="height:65%"></span><span style="height:38%"></span><span style="height:80%"></span>
+                </div>
+              </div>
+            </div>
+            <audio id="player" preload="metadata"></audio>
+            <div class="player-actions">
+              <button class="btn-secondary" id="save" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v12"/><path d="M7 12l5 5 5-5"/><path d="M3 17v3h18v-3"/></svg>
+                حفظ MP3
+              </button>
+              <button class="btn-secondary" id="share" type="button">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-2.2"/><path d="M8.6 13.4l6.8 2.2"/></svg>
+                مشاركة
+              </button>
+            </div>
+          </section>
+
+          <p class="note">يُرسل النص إلى خدمة تحويل آمنة لمعالجته — تجنّب إدخال معلومات حساسة.</p>
+        </main>
+
+        <!-- RECORDINGS TAB — UI structure only -->
+        <section class="content tab-panel" id="tab-recordings" data-tab="recordings" hidden>
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="#8065F5" stroke-width="1.6"><circle cx="24" cy="24" r="16"/><path d="M24 16v12l8 5"/><path d="M16 32l4-4"/><path d="M28 32l4-4"/></svg>
+            </div>
+            <h3>لا توجد تسجيلات بعد</h3>
+            <p>التسجيلات التي تحفظها ستظهر هنا. ابدأ بتحويل نصك الأول من الشاشة الرئيسية.</p>
+          </div>
+        </section>
+
+        <!-- SETTINGS TAB — UI structure only -->
+        <section class="content tab-panel" id="tab-settings" data-tab="settings" hidden>
+          <div class="section">
+            <h2>الإعدادات</h2>
+            <div class="card settings-info-card">
+              <div class="settings-row">
+                <div class="settings-label">
+                  <div class="settings-title">NABRA AI — نَبْرَة AI</div>
+                  <div class="settings-sub">حوّل كلماتك إلى صوت ينبض بالحياة</div>
+                </div>
+                <div class="app-logo small" aria-hidden="true">
+                  <svg viewBox="0 0 32 32" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 22V6L11 15V6H13.5V22H11L5 13V22H5Z" fill="white"/><g opacity="0.95"><rect x="17" y="11" width="2.2" height="10" rx="1.1" fill="white"/><rect x="20.6" y="8.5" width="2.2" height="15" rx="1.1" fill="white"/><rect x="24.2" y="11.8" width="2.2" height="8.4" rx="1.1" fill="white" opacity="0.88"/></g></svg>
+                </div>
+              </div>
+              <div class="settings-divider"></div>
+              <div class="settings-detail">
+                <span class="detail-label">الخادم</span>
+                <span class="detail-value">sawti-ai.onrender.com</span>
+              </div>
+              <div class="settings-detail">
+                <span class="detail-label">الأصوات</span>
+                <span class="detail-value">8 أصوات عربية</span>
+              </div>
+              <div class="settings-detail">
+                <span class="detail-label">الإصدار</span>
+                <span class="detail-value">1.0 · Capacitor</span>
+              </div>
+              <p class="settings-note">يتم حفظ ملفات MP3 في مجلد التنزيلات على جهازك.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Bottom Navigation — native app style -->
+      <nav class="bottom-nav" aria-label="التنقل السفلي">
+        <button class="nav-item active" data-nav="home" type="button" aria-current="page">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1v-9.5Z"/><path d="M9 21V11h6v10"/></svg>
+          </span>
+          <span class="nav-label">الرئيسية</span>
         </button>
-      </div>
-    </header>
-
-    <main class="content">
-      <div class="offline-banner" id="offlineBanner" role="alert">
-        لا يوجد اتصال بالإنترنت — يتطلب التحويل اتصالاً
-      </div>
-
-      <!-- Text Input -->
-      <section class="section">
-        <div class="section-header">
-          <h2>اكتب النص</h2>
-          <button class="text-btn" id="clear" type="button">مسح</button>
-        </div>
-        <div class="card card-editor">
-          <textarea id="text" maxlength="5000" rows="6" placeholder="اكتب نصك العربي هنا...&#10;مثال: مرحباً بك في نَبْرَة — حوّل كلماتك إلى صوت ينبض بالحياة."></textarea>
-          <div class="editor-footer">
-            <span class="counter" id="count">0 / 5000</span>
-            <span class="hint">RTL · يدعم العربية</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Voice Selection -->
-      <section class="section">
-        <h2>اختر الصوت</h2>
-        <div class="card voice-card">
-          <div class="voice-selector">
-            <svg class="voice-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#AAB6D3" stroke-width="1.6"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v5a3 3 0 0 0 3 3Z"/><path d="M19 10a7 7 0 0 1-14 0"/><path d="M12 17v4"/><path d="M8 21h8"/></svg>
-            <select id="voice" aria-label="اختر الصوت">
-              <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
-              <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
-              <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
-              <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
-              <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
-              <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
-              <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
-              <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
-            </select>
-            <svg class="chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#AAB6D3" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-          </div>
-          <div class="voice-meta" id="voiceMeta">الجزائرية · أنثى · Amina</div>
-        </div>
-      </section>
-
-      <!-- Controls -->
-      <section class="section">
-        <h2>إعدادات الصوت</h2>
-        <div class="card controls-card">
-          <div class="control">
-            <div class="control-header">
-              <span class="control-label">سرعة القراءة</span>
-              <span class="control-value" id="rateVal">0%</span>
-            </div>
-            <input id="rate" type="range" min="-30" max="30" value="0">
-            <div class="control-ticks"><span>أبطأ</span><span>طبيعي</span><span>أسرع</span></div>
-          </div>
-          <div class="control-divider"></div>
-          <div class="control">
-            <div class="control-header">
-              <span class="control-label">حدة الصوت</span>
-              <span class="control-value" id="pitchVal">0</span>
-            </div>
-            <input id="pitch" type="range" min="-20" max="20" value="0">
-            <div class="control-ticks"><span>أخفض</span><span>طبيعي</span><span>أحدّ</span></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Generate -->
-      <button class="primary" id="generate" type="button">
-        <span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span>
-        <span class="btn-label">تحويل النص إلى صوت</span>
-      </button>
-      <div class="status" id="status" role="status" aria-live="polite"></div>
-
-      <!-- Audio Player -->
-      <section class="card player-card" id="result" aria-hidden="true">
-        <div class="player-header">
-          <div class="player-title">الصوت الناتج</div>
-          <span class="player-badge">MP3 · جاهز</span>
-        </div>
-        <div class="player-main">
-          <button class="play-btn" id="playPause" type="button" aria-label="تشغيل">
-            <svg class="icon-play" viewBox="0 0 24 24" width="20" height="20" fill="white"><path d="M8 5.3l10 6.7-10 6.7V5.3Z"/></svg>
-            <svg class="icon-pause" viewBox="0 0 24 24" width="20" height="20" fill="white" style="display:none"><rect x="7" y="5" width="4" height="14" rx="1"/><rect x="13" y="5" width="4" height="14" rx="1"/></svg>
-          </button>
-          <div class="player-center">
-            <div class="progress-wrap">
-              <div class="progress-track" id="progressTrack">
-                <div class="progress-fill" id="progressFill"></div>
-                <input type="range" id="seekBar" min="0" max="100" value="0" step="0.1" aria-label="التقدم">
-              </div>
-              <div class="time-row">
-                <span id="currentTime">0:00</span>
-                <span id="duration">0:00</span>
-              </div>
-            </div>
-            <div class="waveform" id="waveform" aria-hidden="true">
-              <span style="height:22%"></span><span style="height:45%"></span><span style="height:30%"></span><span style="height:68%"></span><span style="height:40%"></span><span style="height:85%"></span><span style="height:55%"></span><span style="height:35%"></span><span style="height:72%"></span><span style="height:48%"></span><span style="height:90%"></span><span style="height:60%"></span><span style="height:32%"></span><span style="height:70%"></span><span style="height:42%"></span><span style="height:58%"></span><span style="height:28%"></span><span style="height:65%"></span><span style="height:38%"></span><span style="height:80%"></span>
-            </div>
-          </div>
-        </div>
-        <audio id="player" preload="metadata"></audio>
-        <div class="player-actions">
-          <button class="btn-secondary" id="save" type="button">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v12"/><path d="M7 12l5 5 5-5"/><path d="M3 17v3h18v-3"/></svg>
-            حفظ MP3
-          </button>
-          <button class="btn-secondary" id="share" type="button">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-2.2"/><path d="M8.6 13.4l6.8 2.2"/></svg>
-            مشاركة
-          </button>
-        </div>
-      </section>
-
-      <p class="note">يُرسل النص إلى خدمة تحويل آمنة لمعالجته — تجنّب إدخال معلومات حساسة.</p>
-    </main>
+        <button class="nav-item" data-nav="recordings" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 8v5l3.5 2"/><path d="M8.5 7.5l2 2"/><path d="M15.5 7.5l-2 2"/></svg>
+          </span>
+          <span class="nav-label">التسجيلات</span>
+        </button>
+        <button class="nav-item" data-nav="settings" type="button">
+          <span class="nav-icon">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.2M12 19v2.2M4.2 12H6.5M17.5 12H19.8M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/></svg>
+          </span>
+          <span class="nav-label">الإعدادات</span>
+        </button>
+      </nav>
+    </div>
   </div>
   <script type="module" src="./main.js"></script>
 </body>
