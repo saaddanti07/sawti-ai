@@ -393,6 +393,8 @@ async function generateSpeech() {
       setStatus('حدث خطأ أثناء تشغيل الصوت. حاول حفظ الملف وتشغيله ببرنامج خارجي.', true);
     };
     player.load();
+    // Ensure home tab is visible so player is reachable without excessive scroll
+    try { if (typeof switchTab === 'function') switchTab('home'); } catch (_) {}
     result.classList.add('show');
     result.setAttribute('aria-hidden', 'false');
     setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
@@ -695,16 +697,22 @@ function setupCustomPlayer() {
 }
 
 // ---------------------------------------------------------------------------
-// UI events
+// UI events — premium native behavior
 // ---------------------------------------------------------------------------
 textEl.addEventListener('input', () => {
   count.textContent = `${textEl.value.length} / 5000`;
 });
+function updateSettingsHint() {
+  const hint = document.getElementById('settingsHint');
+  if (hint) hint.textContent = `السرعة ${rate.value}% · الحدة ${pitch.value}`;
+}
 rate.addEventListener('input', () => {
   document.getElementById('rateVal').textContent = `${rate.value}%`;
+  updateSettingsHint();
 });
 pitch.addEventListener('input', () => {
   document.getElementById('pitchVal').textContent = pitch.value;
+  updateSettingsHint();
 });
 voiceEl.addEventListener('change', updateVoiceMeta);
 
@@ -720,10 +728,61 @@ if (clearBtn) {
   });
 }
 
+// Collapsible settings card
+const settingsToggle = document.getElementById('settingsToggle');
+const settingsPanel = document.getElementById('settingsPanel');
+if (settingsToggle && settingsPanel) {
+  settingsToggle.addEventListener('click', () => {
+    const expanded = settingsToggle.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    settingsToggle.setAttribute('aria-expanded', String(next));
+    if (next) {
+      settingsPanel.hidden = false;
+      settingsPanel.style.opacity = '0';
+      settingsPanel.style.transform = 'translateY(-4px)';
+      requestAnimationFrame(() => {
+        settingsPanel.style.opacity = '1';
+        settingsPanel.style.transform = 'translateY(0)';
+      });
+    } else {
+      settingsPanel.style.opacity = '0';
+      settingsPanel.style.transform = 'translateY(-4px)';
+      setTimeout(() => { settingsPanel.hidden = true; }, 180);
+    }
+  });
+}
+
+// Bottom navigation — native app style (home / recordings / settings)
+const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+const tabPanels = document.querySelectorAll('.tab-panel');
+function switchTab(tabName) {
+  navItems.forEach(btn => {
+    const isActive = btn.getAttribute('data-nav') === tabName;
+    btn.classList.toggle('active', isActive);
+    if (isActive) btn.setAttribute('aria-current', 'page'); else btn.removeAttribute('aria-current');
+  });
+  tabPanels.forEach(panel => {
+    const isTarget = panel.getAttribute('data-tab') === tabName;
+    panel.hidden = !isTarget;
+    if (isTarget) panel.classList.add('active'); else panel.classList.remove('active');
+  });
+  // Scroll to top when switching tabs for native feel
+  const activePanel = document.getElementById(`tab-${tabName}`);
+  if (activePanel) activePanel.scrollTop = 0;
+  // Also scroll window to top on mobile
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+navItems.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.getAttribute('data-nav');
+    if (tab) switchTab(tab);
+  });
+});
+
+// Top settings icon → open Settings tab
 if (settingsBtn) {
   settingsBtn.addEventListener('click', () => {
-    setStatus('الإعدادات قريباً — يتم تطويرها حالياً.');
-    setTimeout(() => { if (statusEl.textContent.includes('الإعدادات')) setStatus(''); }, 2200);
+    switchTab('settings');
   });
 }
 
@@ -733,8 +792,9 @@ shareBtn.addEventListener('click', shareMp3);
 
 // Init custom player
 setupCustomPlayer();
-// Init voice meta on load
+// Init voice meta and settings hint on load
 updateVoiceMeta();
+updateSettingsHint();
 
 // ---------------------------------------------------------------------------
 // Native: network, back button, status bar, splash
@@ -764,6 +824,13 @@ async function initNative() {
 
   try {
     await App.addListener('backButton', ({ canGoBack }) => {
+      // Handle bottom nav: if not on home, go home first
+      const activeNav = document.querySelector('.bottom-nav .nav-item.active');
+      const activeTab = activeNav ? activeNav.getAttribute('data-nav') : 'home';
+      if (activeTab && activeTab !== 'home') {
+        try { switchTab('home'); } catch (_) {}
+        return;
+      }
       if (!player.paused) {
         player.pause();
         return;
