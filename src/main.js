@@ -18,7 +18,17 @@ const isNative = Capacitor.isNativePlatform();
 // from https://localhost, so absolute URLs pointing at the Render backend
 // (SAWTI_API_BASE_URL in config.js) are required.
 const API_BASE = isNative ? SAWTI_API_BASE_URL.replace(/\/+$/, '') : '';
-const API_CONFIGURED = !API_BASE.includes('YOUR-RENDER-URL');
+// Android must have a real https://*.onrender.com URL; web uses relative paths.
+const API_CONFIGURED = isNative
+  ? (() => {
+      try {
+        const u = new URL(API_BASE);
+        return u.protocol === 'https:' && u.hostname.endsWith('.onrender.com') && (u.pathname === '/' || u.pathname === '');
+      } catch {
+        return false;
+      }
+    })()
+  : true;
 
 function apiUrl(path) {
   return `${API_BASE}${path}`;

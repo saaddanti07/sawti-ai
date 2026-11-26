@@ -46,23 +46,22 @@
 
 هذا هو **أهم خطوة** قبل بناء التطبيق.
 
-1. افتح الملف `src/config.js`.
+1. افتح الملف `src/config.js` — هو المكان الوحيد لتغيير رابط الخادم.
 2. ستجد السطر:
 
 ```js
-export const SAWTI_API_BASE_URL = 'https://YOUR-RENDER-URL.onrender.com';
+export const SAWTI_API_BASE_URL = 'https://sawti-ai.onrender.com';
 ```
 
-3. استبدل `https://YOUR-RENDER-URL.onrender.com` برابط خدمة Render **الفعلي** الخاص بك، **بدون** شرطة مائلة في النهاية.
+   هذا هو رابط الإنتاج الحالي. لا تغيره إلا إذا انتقل الخادم إلى عنوان آخر.
 
-   - ✅ صحيح: `https://sawti-ai-arabic.onrender.com`
-   - ❌ خطأ: `https://sawti-ai-arabic.onrender.com/`
+   - ✅ صحيح: `https://sawti-ai.onrender.com`
+   - ❌ خطأ: `https://sawti-ai.onrender.com/` (شرطة نهائية)
+   - ❌ خطأ: `https://YOUR-RENDER-URL.onrender.com` (رابط وهمي)
 
-4. احفظ الملف ثم أعد البناء (انظر القسم 5).
+3. إذا انتقل الخادم مستقبلاً، استبدل القيمة بالرابط الجديد **بدون** شرطة مائلة في النهاية ثم أعد البناء (انظر القسم 5).
 
-> **لماذا رابط مطلق؟** تطبيق أندرويد يُشغّل واجهته من `https://localhost` داخل WebView، لذا لا تعمل المسارات النسبية `/api/...`. يجب أن تكون الطلبات مطلقة مثل `https://YOUR-RENDER-URL.onrender.com/api/voices`. موقع الويب الأصلي على Render لا يزال يستخدم مسارات نسبية كما كان.
-
-> **لا تخترع رابطاً.** إذا لم يكن لديك رابط Render بعد، انشر الخادم أولاً (اتبع `README_AR.md` قسم "النشر كموقع عام") ثم ضع الرابط الحقيقي.
+> **لماذا رابط مطلق؟** تطبيق أندرويد يُشغّل واجهته من `https://localhost` داخل WebView، لذا لا تعمل المسارات النسبية `/api/...`. يجب أن تكون الطلبات مطلقة مثل `https://sawti-ai.onrender.com/api/voices` و `https://sawti-ai.onrender.com/api/tts`. موقع الويب الأصلي على Render لا يزال يستخدم مسارات نسبية كما كان.
 
 ---
 
