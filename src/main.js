@@ -76,6 +76,69 @@ function initTheme() {
 initTheme();
 
 // ---------------------------------------------------------------------------
+// Premium Splash Screen — animated startup experience
+// ---------------------------------------------------------------------------
+// Visible immediately via HTML; hides native splash quickly to reveal in-app splash,
+// then keeps in-app splash for a premium minimum duration regardless of backend.
+const splashEl = document.getElementById('splash');
+const SPLASH_MIN_MS = 1700;   // premium feel, lightweight
+const SPLASH_MAX_MS = 3200;   // safety: never block app if Render sleeping
+let splashStart = Date.now();
+let splashHidden = false;
+let splashTimers = [];
+
+function hideSplash(reason = 'ready') {
+  if (splashHidden || !splashEl) return;
+  splashHidden = true;
+  try { console.log('[NABRA] splash hide', reason); } catch {}
+  try { splashEl.classList.add('hidden'); } catch {}
+  try { splashEl.setAttribute('aria-hidden', 'true'); } catch {}
+  // Clean up animation resources after CSS transition (0.48s)
+  const t = setTimeout(() => {
+    try { splashEl.style.display = 'none'; } catch {}
+    // remove glow animations to free GPU
+    try { splashEl.querySelectorAll('*').forEach(n => { n.style.animation = 'none'; }); } catch {}
+    splashTimers.forEach(clearTimeout);
+    splashTimers = [];
+  }, 600);
+  splashTimers.push(t);
+  // Ensure native splash also hidden
+  try { SplashScreen.hide(); } catch {}
+}
+
+function scheduleSplashHide(reason = 'ready') {
+  if (splashHidden) return;
+  const elapsed = Date.now() - splashStart;
+  const remainMin = Math.max(0, SPLASH_MIN_MS - elapsed);
+  const t = setTimeout(() => hideSplash(reason), remainMin);
+  splashTimers.push(t);
+  // Hard max timeout — hide regardless even if called late
+  const remainMax = Math.max(0, SPLASH_MAX_MS - elapsed);
+  const t2 = setTimeout(() => hideSplash('max-timeout'), remainMax);
+  splashTimers.push(t2);
+}
+
+function initSplash() {
+  splashStart = Date.now();
+  // Hide native Capacitor splash quickly to reveal branded in-app splash (avoids white flash behind).
+  // If launchAutoHide is false, native stays until we call hide().
+  const hideNative = () => { try { SplashScreen.hide(); } catch {} };
+  if (isNativePlatform()) {
+    // slight delay ensures webview rendered behind native before hide → no white flash
+    const tn = setTimeout(hideNative, 120);
+    splashTimers.push(tn);
+  } else {
+    // web: ensure native hide not needed, just ensure splash visible
+    try { SplashScreen.hide(); } catch {}
+  }
+  // Always schedule branded splash hide after premium minimum, independent of voices fetch
+  scheduleSplashHide('init');
+}
+
+initSplash();
+
+
+// ---------------------------------------------------------------------------
 // API base URL — centralized single source of truth
 // ---------------------------------------------------------------------------
 // SAWTI_API_BASE_URL in src/config.js is the single configurable value:

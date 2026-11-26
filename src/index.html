@@ -10,6 +10,41 @@
   <script>try{const s=localStorage.getItem('nabra-theme');const m=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';const t=s||m;document.documentElement.setAttribute('data-theme',t);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#F5F6FC':'#080D1B')}catch(e){}</script>
 </head>
 <body>
+  <!-- Premium Splash Screen — visible on every cold launch -->
+  <div id="splash" class="splash" aria-hidden="false" role="presentation">
+    <div class="splash-bg" aria-hidden="true"></div>
+    <div class="splash-glow" aria-hidden="true"></div>
+    <div class="splash-inner">
+      <div class="splash-logo-wrap" aria-hidden="true">
+        <div class="splash-logo-glow"></div>
+        <div class="splash-logo">
+          <!-- microphone icon -->
+          <svg viewBox="0 0 56 56" width="52" height="52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="14" y="8" width="28" height="34" rx="14" fill="white" fill-opacity="0.14" stroke="white" stroke-opacity="0.2" stroke-width="1.2"/>
+            <path d="M28 18a5.2 5.2 0 0 0-5.2 5.2V32a5.2 5.2 0 0 0 10.4 0v-8.8A5.2 5.2 0 0 0 28 18Z" fill="white"/>
+            <path d="M18.2 26.5A9.8 9.8 0 0 0 37.8 26.5" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M28 36v6.5" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
+            <path d="M21.5 42.5h13" stroke="white" stroke-width="1.7" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+      <!-- central branding text -->
+      <h1 class="splash-title">NABRA AI</h1>
+      <p class="splash-subtitle">استوديو تحويل النص إلى صوت</p>
+      <p class="splash-tagline">حوّل كلماتك إلى صوت ينبض بالحياة.</p>
+      <div class="splash-wave" aria-hidden="true">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <div class="splash-footer">
+      <div class="splash-loader" aria-hidden="true">
+        <div class="splash-loader-track"><div class="splash-loader-fill"></div></div>
+        <div class="splash-loader-dots"><span></span><span></span><span></span></div>
+      </div>
+      <p class="splash-loading-text">جاري تجهيز الاستوديو الصوتي...</p>
+    </div>
+  </div>
+
   <div class="device-shell">
     <div class="app" id="appRoot">
       <!-- Premium Compact Header -->
