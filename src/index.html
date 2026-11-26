@@ -3,18 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#101526">
-  <meta name="description" content="صوتي AI — حوّل النص العربي إلى صوت طبيعي مجاناً.">
-  <title>صوتي AI | تحويل النص إلى صوت</title>
+  <meta name="theme-color" content="#0B1020">
+  <meta name="description" content="NABRA AI — نَبْرَة AI — حوّل كلماتك إلى صوت ينبض بالحياة. Turn Your Words Into Living Voices.">
+  <title>NABRA AI | نَبْرَة AI — تحويل النص إلى صوت</title>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <main class="wrap">
     <header>
-      <div class="logo">♫</div>
-      <h1>صوتي <span style="color:#a99fff">AI</span></h1>
-      <p class="sub">حوّل كلماتك إلى صوت عربي طبيعي في ثوانٍ.<br>اكتب النص، اختر الصوت، واستمع إلى النتيجة.</p>
-      <span class="tag">✦ مجاني للبدء · لا يحتاج إلى تسجيل</span>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img">
+            <path d="M12 48V16L28 34V16H36V48H28L12 30V48H12Z" fill="white" fill-opacity="0.98"/>
+            <!-- subtle sound wave integrated with N -->
+            <g opacity="0.92">
+              <rect x="42" y="22" width="3.2" height="20" rx="1.6" fill="white"/>
+              <rect x="47.5" y="18" width="3.2" height="28" rx="1.6" fill="white" opacity="0.92"/>
+              <rect x="53" y="24" width="3.2" height="16" rx="1.6" fill="white" opacity="0.78"/>
+            </g>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>NABRA <span>AI</span></h1>
+          <div class="brand-ar">نَبْرَة AI</div>
+        </div>
+      </div>
+      <p class="sub">حوّل كلماتك إلى صوت ينبض بالحياة.</p>
+      <p class="sub-en">Turn Your Words Into Living Voices.</p>
+      <span class="tag">✦ 8 أصوات عربية · ذكاء اصطناعي</span>
     </header>
 
     <div class="offline-banner" id="offlineBanner" role="alert">
@@ -23,7 +39,7 @@
 
     <section class="card">
       <label for="text">النص الذي تريد تحويله</label>
-      <textarea id="text" maxlength="5000" placeholder="اكتب أو الصق النص العربي هنا...&#10;&#10;مثال: مرحباً بك في صوتي، أداتك البسيطة لتحويل النصوص إلى صوت."></textarea>
+      <textarea id="text" maxlength="5000" placeholder="اكتب أو الصق النص العربي هنا...&#10;&#10;مثال: مرحباً بك في نبرة، حوّل كلماتك إلى صوت ينبض بالحياة."></textarea>
       <div class="counter"><span>يدعم النصوص العربية</span><span id="count">0 / 5000</span></div>
 
       <div class="grid">
@@ -66,7 +82,7 @@
       </div>
       <div class="note">تنبيه: يتطلب التحويل اتصالاً بالإنترنت. يُرسل النص إلى خدمة تحويل صوت خارجية لمعالجته؛ تجنب إدخال كلمات المرور أو المعلومات الخاصة.</div>
     </section>
-    <footer>صوتي AI · تطبيق أندرويد</footer>
+    <footer>NABRA AI · نَبْرَة AI</footer>
   </main>
   <script type="module" src="./main.js"></script>
 </body>

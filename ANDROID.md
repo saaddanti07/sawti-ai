@@ -1,12 +1,13 @@
-# صوتي AI — دليل تطبيق أندرويد (Capacitor)
+# NABRA AI (نَبْرَة AI) — دليل تطبيق أندرويد (Capacitor)
 
-هذا الدليل يشرح كيف تحوّل مشروع **صوتي AI** الحالي إلى تطبيق أندرويد حقيقي باستخدام Capacitor، وكيف تبني ملف APK عبر GitHub Actions بدون الحاجة إلى Android Studio على جهازك.
+هذا الدليل يشرح كيف تحوّل مشروع **NABRA AI (نَبْرَة AI)** الحالي إلى تطبيق أندرويد حقيقي باستخدام Capacitor، وكيف تبني ملف APK عبر GitHub Actions بدون الحاجة إلى Android Studio على جهازك.
 
 ---
 
 ## 1. نظرة عامة
 
-- **اسم التطبيق:** صوتي AI
+- **اسم التطبيق:** NABRA AI — الاسم العربي: نَبْرَة AI
+- **العلامة:** NABRA AI (نَبْرَة AI) — "حوّل كلماتك إلى صوت ينبض بالحياة." / "Turn Your Words Into Living Voices."
 - **معرّف الحزمة:** `com.sawti.ai`
 - **التقنية:** Capacitor 8.6.3 + Vite 6 + Web (HTML/CSS/JS)
 - **الخادم:** يبقى على Render كما هو (`app.py` + Edge TTS). التطبيق مجرد عميل يتصل بالخادم عبر الإنترنت.
@@ -25,20 +26,20 @@
 ### تم إنشاؤها
 | الملف | الغرض |
 |------|-------|
-| `package.json` | تعريف مشروع Node/Capacitor مع سكربتات `build`, `sync`, `assets` واعتماديات Capacitor 8.6.3 والبلجنات. |
+| `package.json` | تعريف مشروع NABRA AI Node/Capacitor مع سكربتات `build`, `sync`, `assets` واعتماديات Capacitor 8.6.3 والبلجنات. |
 | `package-lock.json` | قفل إصدارات npm لضمان بناء متطابق على GitHub Actions (`npm ci`). |
-| `capacitor.config.ts` | إعداد Capacitor: `appId: com.sawti.ai`, `appName: صوتي AI`, `webDir: www`, `androidScheme: https`, إعدادات SplashScreen/StatusBar/Keyboard. |
+| `capacitor.config.ts` | إعداد Capacitor: `appId: com.sawti.ai` (محفوظ), `appName: NABRA AI`, `webDir: www`, `androidScheme: https`, إعدادات SplashScreen #0B1020 و spinner #8065F5 والـ StatusBar. |
 | `vite.config.ts` | إعداد Vite: جذر المشروع `src/` والمخرجات `www/` (الذي يشير إليه `capacitor.config.ts`). |
 | `src/config.js` | **القيمة القابلة للإعداد** `SAWTI_API_BASE_URL` — رابط خادم Render بدون `/` نهائية. يحتوي على تعليقات عربية وشروحات الأمثلة الصحيحة/الخاطئة. |
-| `src/index.html` | واجهة التطبيق للأندرويد (نفس هوية `static/index.html` لكن محسّنة للهاتف: `viewport-fit=cover`, شريط حالة داكن, `offlineBanner`, أزرار حفظ/مشاركة). |
-| `src/style.css` | تنسيقات الهاتف: تمنع التمرير الأفقي, تدعم safe-area, تستخدم `100dvh`, شبكة متجاوبة, تحسينات للأزرار. |
-| `src/main.js` | منطق التطبيق: تحميل الأصوات من `/api/voices` (مع fallback)، إرسال `/api/tts` مع timeout 120ث، تشغيل MP3، استخدام Filesystem/Share لحفظ/مشاركة MP3، معالجة الأخطاء بالعربية، لافتة عدم الاتصال، معالجة زر الرجوع، إخفاء لوحة المفاتيح، وتنظيف object URLs/الملفات المؤقتة. |
-| `assets/icon.png` (1024×1024) | أيقونة المصدر (تدرج بنفسجي-أزرق + نوتة موسيقية). |
-| `assets/splash.png` (2732×2732) | صورة شاشة البداية (خلفية `#0b1020` + بلاط بتدرج). |
+| `src/index.html` | واجهة NABRA AI — هيدر NABRA AI / نَبْرَة AI مع الشعار الجديد والشعار "حوّل كلماتك إلى صوت ينبض بالحياة."، RTL محسّنة للهاتف. |
+| `src/style.css` | هوية NABRA البصرية — #8065F5 / #4F83FF / #0B1020 / #17223A / #FFFFFF / #AAB6D3، تدرجات خفيفة، تباعد وطباعة محسّنة. |
+| `src/main.js` | منطق NABRA AI: تحميل الأصوات من `/api/voices` (مع fallback)، إرسال `/api/tts` مع timeout 120ث، تشغيل MP3، استخدام Filesystem/Share لحفظ/مشاركة MP3، معالجة الأخطاء بالعربية، لافتة عدم الاتصال، معالجة زر الرجوع، إخفاء لوحة المفاتيح، وتنظيف object URLs/الملفات المؤقتة. |
+| `assets/icon.png` (1024×1024) | أيقونة NABRA AI — حرف N مع موجة صوتية، تدرج #8065F5 → #4F83FF، تصميم هندسي نظيف. |
+| `assets/splash.png` (2732×2732) | شاشة البداية — خلفية #0B1020 + بلاط بتدرج #8065F5→#4F83FF مع شعار NABRA. |
 | `android/` | مشروع أندرويد الأصلي الذي أنشأه `npx cap add android` وتم توليد الأيقونات/شاشات البداية فيه عبر `npx @capacitor/assets generate --android` (87 ملف في `mipmap-*` و`drawable-*`). تم ضبط `android/app/src/main/AndroidManifest.xml` (تمت إضافة `windowSoftInputMode="adjustResize"` لوعي لوحة المفاتيح). تم ضبط `android/app/build.gradle` لدعم توقيع release عبر `gradle.properties` المحقون من الأسرار. |
 | `.github/workflows/build-android.yml` | سير عمل GitHub Actions: يبني debug APK ويرفعه كـ artifact، ويدعم فصل بناء release موقّع عبر أسرار دون اختراع مفاتيح. |
 
-**لم يتم المساس بها:** `static/index.html` (موقع الويب الأصلي), `requirements.txt`, `render.yaml` — بقيت كما هي.
+**لم يتم المساس بها:** `static/index.html` (موقع الويب الأصلي على Render يبقى كما هو)، `app.py` (الخادم)، `render.yaml`, `requirements.txt`, `render.yaml` — بقيت كما هي.
 
 ---
 
@@ -105,7 +106,7 @@ npm run assets
 git status
 git add app.py .gitignore package.json package-lock.json capacitor.config.ts vite.config.ts src/ assets/ android/ .github/
 git status   # تأكد أن www/ و node_modules/ و android/app/build/ غير مضافة (مُتجاهلة)
-git commit -m "feat: Capacitor Android app لصوتي AI — UI محفوظة + حفظ/مشاركة MP3 + CI"
+git commit -m "feat: NABRA AI — rebrand + UI + حفظ/مشاركة MP3 + CI"
 
 # أنشئ مستودعاً فارغاً على github.com (بدون README)
 # ثم اربطه:

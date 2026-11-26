@@ -58,7 +58,7 @@ const VOICES_TIMEOUT_MS = 30000;
 let currentUrl = null; // object URL for <audio>
 let currentBlob = null; // last generated MP3 blob
 let nativeFileUri = null; // cached file:// URI written via Filesystem
-let nativeFileName = 'sawti-ai.mp3';
+let nativeFileName = 'nabra-ai.mp3';
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -246,7 +246,7 @@ async function saveMp3() {
       // Open the native share sheet so the user can save the file
       // to Downloads / Drive / etc. (no storage permission needed).
       await Share.share({
-        title: 'صوتي AI',
+        title: 'NABRA AI',
         url: uri,
         dialogTitle: 'حفظ ملف MP3',
       });
@@ -262,7 +262,7 @@ async function saveMp3() {
     // Web fallback: normal browser download.
     const a = document.createElement('a');
     a.href = currentUrl;
-    a.download = 'sawti-ai.mp3';
+    a.download = 'nabra-ai.mp3';
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -279,8 +279,8 @@ async function shareMp3() {
     try {
       const uri = await ensureNativeFile();
       await Share.share({
-        title: 'صوتي AI',
-        text: 'استمع إلى هذا الصوت العربي من تطبيق صوتي AI',
+        title: 'NABRA AI',
+        text: 'استمع إلى هذا الصوت من NABRA AI — نَبْرَة AI',
         url: uri,
         dialogTitle: 'مشاركة MP3',
       });
@@ -293,8 +293,8 @@ async function shareMp3() {
     }
   } else if (navigator.share) {
     try {
-      const file = new File([currentBlob], 'sawti-ai.mp3', { type: 'audio/mpeg' });
-      await navigator.share({ title: 'صوتي AI', files: [file] });
+      const file = new File([currentBlob], 'nabra-ai.mp3', { type: 'audio/mpeg' });
+      await navigator.share({ title: 'NABRA AI', files: [file] });
     } catch (err) {
       if (err && err.name !== 'AbortError') {
         setStatus('تعذر مشاركة الملف. يمكنك تنزيله بدلاً من ذلك.', true);

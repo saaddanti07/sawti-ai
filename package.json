@@ -2,7 +2,7 @@
   "name": "sawti-ai-android",
   "version": "1.0.0",
   "private": true,
-  "description": "صوتي AI — تطبيق أندرويد لتحويل النص العربي إلى صوت (Capacitor)",
+  "description": "NABRA AI (نَبْرَة AI) — Turn Your Words Into Living Voices. Arabic TTS Android app (Capacitor)",
   "scripts": {
     "build": "vite build",
     "sync": "npm run build && npx cap sync",
