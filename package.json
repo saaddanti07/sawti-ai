@@ -1,0 +1,30 @@
+{
+  "name": "sawti-ai-android",
+  "version": "1.0.0",
+  "private": true,
+  "description": "صوتي AI — تطبيق أندرويد لتحويل النص العربي إلى صوت (Capacitor)",
+  "scripts": {
+    "build": "vite build",
+    "sync": "npm run build && npx cap sync",
+    "add:android": "npx cap add android",
+    "open:android": "npx cap open android",
+    "assets": "npx @capacitor/assets generate --android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/keyboard": "^8.0.6",
+    "@capacitor/network": "^8.0.1",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.3",
+    "typescript": "^7.0.2",
+    "vite": "^6.4.6"
+  }
+}

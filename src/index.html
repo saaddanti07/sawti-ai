@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101526">
+  <meta name="description" content="صوتي AI — حوّل النص العربي إلى صوت طبيعي مجاناً.">
+  <title>صوتي AI | تحويل النص إلى صوت</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="logo">♫</div>
+      <h1>صوتي <span style="color:#a99fff">AI</span></h1>
+      <p class="sub">حوّل كلماتك إلى صوت عربي طبيعي في ثوانٍ.<br>اكتب النص، اختر الصوت، واستمع إلى النتيجة.</p>
+      <span class="tag">✦ مجاني للبدء · لا يحتاج إلى تسجيل</span>
+    </header>
+
+    <div class="offline-banner" id="offlineBanner" role="alert">
+      ⚠️ لا يوجد اتصال بالإنترنت. يتطلب التطبيق اتصالاً بالإنترنت لتحويل النص إلى صوت. تحقق من الاتصال وحاول مجدداً.
+    </div>
+
+    <section class="card">
+      <label for="text">النص الذي تريد تحويله</label>
+      <textarea id="text" maxlength="5000" placeholder="اكتب أو الصق النص العربي هنا...&#10;&#10;مثال: مرحباً بك في صوتي، أداتك البسيطة لتحويل النصوص إلى صوت."></textarea>
+      <div class="counter"><span>يدعم النصوص العربية</span><span id="count">0 / 5000</span></div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="voice">اختر الصوت</label>
+          <select id="voice">
+            <option value="ar-DZ-AminaNeural">أمينة — جزائرية (أنثى)</option>
+            <option value="ar-DZ-IsmaelNeural">إسماعيل — جزائري (ذكر)</option>
+            <option value="ar-SA-ZariyahNeural">زارية — سعودية (أنثى)</option>
+            <option value="ar-SA-HamedNeural">حامد — سعودي (ذكر)</option>
+            <option value="ar-EG-SalmaNeural">سلمى — مصرية (أنثى)</option>
+            <option value="ar-EG-ShakirNeural">شاكر — مصري (ذكر)</option>
+            <option value="ar-AE-FatimaNeural">فاطمة — إماراتية (أنثى)</option>
+            <option value="ar-AE-HamdanNeural">حمدان — إماراتي (ذكر)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rate">سرعة القراءة</label>
+          <div class="range-line"><input id="rate" type="range" min="-30" max="30" value="0"><span class="range-value" id="rateVal">0%</span></div>
+        </div>
+        <div class="field">
+          <label for="pitch">حدة الصوت</label>
+          <div class="range-line"><input id="pitch" type="range" min="-20" max="20" value="0"><span class="range-value" id="pitchVal">0</span></div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="generate">✦ تحويل النص إلى صوت</button>
+        <button class="secondary" id="clear">مسح النص</button>
+      </div>
+      <div class="status" id="status" role="status"></div>
+
+      <div class="result" id="result">
+        <label>الصوت الناتج</label>
+        <audio id="player" controls></audio>
+        <div class="result-actions">
+          <button class="download" id="save">⬇ حفظ MP3</button>
+          <button class="share-btn" id="share">↗ مشاركة MP3</button>
+        </div>
+      </div>
+      <div class="note">تنبيه: يتطلب التحويل اتصالاً بالإنترنت. يُرسل النص إلى خدمة تحويل صوت خارجية لمعالجته؛ تجنب إدخال كلمات المرور أو المعلومات الخاصة.</div>
+    </section>
+    <footer>صوتي AI · تطبيق أندرويد</footer>
+  </main>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

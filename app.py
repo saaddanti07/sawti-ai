@@ -4,6 +4,7 @@ from pathlib import Path
 
 import edge_tts
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from starlette.background import BackgroundTask
 from fastapi.staticfiles import StaticFiles
@@ -26,6 +27,21 @@ VOICES = {
 }
 
 app = FastAPI(title="Sawti AI - Arabic Text to Speech")
+
+# Allow requests from the Capacitor Android WebView (and the web version).
+# The Android app runs from the https://localhost origin inside the WebView,
+# so only those specific origins are allowed (no wildcard).
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://localhost",       # Capacitor Android WebView origin
+        "http://localhost",        # local development / fallback
+        "capacitor://localhost",   # Capacitor custom scheme
+    ],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "Accept"],
+)
 
 class SpeechRequest(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
