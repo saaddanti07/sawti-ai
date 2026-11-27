@@ -96,4 +96,14 @@ async def text_to_speech(payload: SpeechRequest):
         background=BackgroundTask(output_path.unlink, missing_ok=True)
     )
 
+# Legal pages — explicit routes before static mount so /privacy and /terms resolve to files
+# Accessible without login, served as static HTML with NABRA AI branding
+@app.get("/privacy", include_in_schema=False)
+async def privacy_page():
+    return FileResponse(BASE_DIR / "static" / "privacy.html", media_type="text/html")
+
+@app.get("/terms", include_in_schema=False)
+async def terms_page():
+    return FileResponse(BASE_DIR / "static" / "terms.html", media_type="text/html")
+
 app.mount("/", StaticFiles(directory=BASE_DIR / "static", html=True), name="static")

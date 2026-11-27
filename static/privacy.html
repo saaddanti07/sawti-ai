@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080D1B">
+  <meta name="description" content="NABRA AI Privacy Policy — سياسة الخصوصية">
+  <title>NABRA AI — Privacy Policy | سياسة الخصوصية</title>
+  <style>
+    :root{--bg:#080D1B;--bg2:#10182B;--card:#141F36;--card2:#1B2945;--line:#1E2D4A;--text:#FFFFFF;--muted:#AAB6D3;--muted2:#8A96B8;--accent:#8065F5;--accent2:#4F83FF;--radius:18px}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{max-width:100%;overflow-x:hidden}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:Tahoma,system-ui,-apple-system,Arial,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.8}
+    a{color:var(--accent)}
+    .shell{min-height:100vh;display:flex;flex-direction:column}
+    .topbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+    .topbar-inner{max-width:920px;margin:auto;width:100%;height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;gap:12px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text)}
+    .logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 28%,transparent)}
+    .brand-text{line-height:1}
+    .brand-name{font-size:14px;font-weight:800;letter-spacing:.2px}
+    .brand-sub{font-size:10px;font-weight:600;color:var(--muted);margin-top:2px}
+    .navlinks{display:flex;gap:8px;align-items:center}
+    .navlinks a{font-size:12.5px;font-weight:600;color:var(--muted);text-decoration:none;padding:7px 10px;border-radius:9px;border:1px solid transparent}
+    .navlinks a.active{color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border-color:color-mix(in srgb,var(--accent) 28%,transparent)}
+    .navlinks a:hover{border-color:var(--line);color:var(--text)}
+    .wrap{max-width:920px;margin:auto;width:100%;padding:22px 16px 30px;flex:1}
+    .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#1A2340 0%,#1F2A4A 50%,#2A1F4A 100%);border:1px solid var(--line);border-radius:20px;padding:22px 18px;isolation:isolate}
+    .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 520px 220px at 85% 10%,color-mix(in srgb,var(--accent) 18%,transparent) 0%,transparent 62%);opacity:.9;pointer-events:none}
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{margin:0;font-size:22px;font-weight:900;line-height:1.3}
+    .hero p{margin:8px 0 0;color:var(--muted);font-size:13px;max-width:640px}
+    .badges{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+    .badge{font-size:11.5px;font-weight:700;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);padding:6px 10px;border-radius:99px}
+    .badge.dark{color:var(--muted);background:var(--card2);border-color:var(--line)}
+    .langbar{margin:18px 0 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .langlabel{font-size:12.5px;font-weight:700;color:var(--muted)}
+    .langswitch{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+    .langswitch button{border:0;background:transparent;color:var(--muted);font:700 12px Tahoma,Arial;cursor:pointer;padding:7px 14px;border-radius:8px}
+    .langswitch button.active{background:var(--accent);color:white;box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 30%,transparent)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 12px 40px rgba(0,0,0,.25);margin-top:16px}
+    .card h2{margin:0 0 8px;font-size:16px;font-weight:800;color:var(--text)}
+    .card h3{margin:18px 0 8px;font-size:14px;font-weight:800;color:var(--text)}
+    .card p{margin:8px 0;color:var(--muted);font-size:13.5px;line-height:1.9}
+    .card ul{margin:8px 0 0;padding-inline-start:18px;color:var(--muted);font-size:13.5px;line-height:1.9}
+    .card li{margin:4px 0}
+    .highlight{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:12px}
+    .highlight strong{color:var(--text)}
+    .contact{font-weight:700}
+    footer{text-align:center;color:#7885A2;font-size:12px;margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+    footer a{color:#AAB6D3;text-decoration:none}
+    footer a:hover{color:var(--accent);text-decoration:underline}
+    .footlinks{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+    .footlinks a{font-weight:600}
+    @media(max-width:640px){.topbar-inner{height:54px}.hero h1{font-size:19px}.wrap{padding-top:16px}}
+  </style>
+</head>
+<body>
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="NABRA AI">
+        <div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32" width="18" height="18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 22V6L11 15V6H13.5V22H11L5 13V22H5Z" fill="white"/><g opacity="0.95"><rect x="17" y="11" width="2.2" height="10" rx="1.1" fill="white"/><rect x="20.6" y="8.5" width="2.2" height="15" rx="1.1" fill="white"/><rect x="24.2" y="11.8" width="2.2" height="8.4" rx="1.1" fill="white" opacity="0.88"/></g></svg></div>
+        <div class="brand-text">
+          <div class="brand-name">NABRA AI</div>
+          <div class="brand-sub" data-i18n="brand_sub">استوديو تحويل النص إلى صوت</div>
+        </div>
+      </a>
+      <nav class="navlinks" aria-label="Legal navigation">
+        <a href="/privacy" class="active" data-i18n="nav_privacy">سياسة الخصوصية</a>
+        <a href="/terms" data-i18n="nav_terms">شروط الاستخدام</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-inner">
+        <h1 data-i18n="title">سياسة الخصوصية — NABRA AI</h1>
+        <p data-i18n="subtitle">كيف نجمع ونستخدم ونحمي معلوماتك عند استخدام NABRA AI (نَبْرَة AI) لتحويل النص إلى صوت.</p>
+        <div class="badges">
+          <span class="badge" data-i18n="updated">آخر تحديث: 27 نوفمبر 2026</span>
+          <span class="badge dark"><a href="mailto:support.nabra.ai@gmail.com" style="color:inherit;text-decoration:none">support.nabra.ai@gmail.com</a></span>
+        </div>
+      </div>
+    </section>
+
+    <div class="langbar">
+      <div class="langlabel" data-i18n="lang_label">اللغة</div>
+      <div class="langswitch" role="group" aria-label="Language">
+        <button data-lang="ar" class="active" type="button">العربية</button>
+        <button data-lang="fr" type="button">Français</button>
+        <button data-lang="en" type="button">English</button>
+      </div>
+    </div>
+
+    <article class="card" id="content">
+      <!-- Content injected by JS -->
+    </article>
+
+    <footer>
+      <div>© 2026 NABRA AI · نَبْرَة AI — <span data-i18n="footer_all">جميع الحقوق محفوظة</span></div>
+      <div class="footlinks">
+        <a href="/privacy" data-i18n="nav_privacy">سياسة الخصوصية</a>
+        <a href="/terms" data-i18n="nav_terms">شروط الاستخدام</a>
+        <a href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a>
+        <a href="/" data-i18n="nav_home">الرئيسية</a>
+      </div>
+    </footer>
+  </main>
+</div>
+
+<script>
+const I18N={
+ar:{
+  brand_sub:"استوديو تحويل النص إلى صوت",
+  nav_privacy:"سياسة الخصوصية",
+  nav_terms:"شروط الاستخدام",
+  nav_home:"الرئيسية",
+  title:"سياسة الخصوصية — NABRA AI",
+  subtitle:"كيف نجمع ونستخدم ونحمي معلوماتك عند استخدام NABRA AI (نَبْرَة AI) لتحويل النص إلى صوت.",
+  updated:"آخر تحديث: 27 نوفمبر 2026",
+  lang_label:"اللغة",
+  footer_all:"جميع الحقوق محفوظة",
+  html:`
+    <h2>1. مقدمة ونطاق السياسة</h2>
+    <p>مرحباً بك في NABRA AI (نَبْرَة AI)، استوديو تحويل النص إلى صوت. تشرح هذه السياسة كيفية جمعنا واستخدامنا وحمايتنا لمعلوماتك عند استخدامك موقعنا <strong>https://sawti-ai.onrender.com</strong> وتطبيق Android المرتبط به. باستخدامك الخدمة، فإنك توافق على ممارسات هذه السياسة.</p>
+    <p>الخدمة موجهة لعامة الجمهور ولا تتطلب تسجيل دخول. يمكنك الوصول إلى هذه الصفحة وصفحة الشروط دون حساب.</p>
+
+    <h2>2. المعلومات التي نجمعها</h2>
+    <h3>أ. النص الذي ترسله</h3>
+    <p>عند استخدام تحويل النص إلى صوت، يتم إرسال النص الذي تدخله عبر اتصال HTTPS إلى خادمنا المستضاف على <strong>Render</strong> (https://sawti-ai.onrender.com). نستخدم هذا النص فقط لتوليد الملف الصوتي المطلوب.</p>
+    <h3>ب. المعلومات التقنية</h3>
+    <p>قد نجمع تلقائياً معلومات تقنية محدودة ضرورية للتشغيل، مثل عنوان IP، نوع المتصفح/الجهاز، نظام التشغيل، وطابع زمني للطلب، لأغراض الأمان ومراقبة الأداء.</p>
+    <h3>ج. الكوكيز والتخزين المحلي</h3>
+    <p>نستخدم التخزين المحلي (localStorage) لحفظ تفضيلاتك مثل وضع المظهر (فاتح/داكن) ولغة الواجهة. لا نستخدم كوكيز تتبع عبر المواقع.</p>
+    <h3>د. معلومات لا نجمعها افتراضياً</h3>
+    <p>لا نطلب منك إنشاء حساب، ولا نجمع اسمك أو بريدك إلا إذا تواصلت معنا طوعاً عبر البريد الإلكتروني.</p>
+
+    <h2>3. كيف نعالج النص عبر Edge-TTS</h2>
+    <div class="highlight">
+      <p><strong>توضيح مهم:</strong> عند الضغط على "تحويل النص إلى صوت"، يُرسل النص إلى خادمنا على Render، ويتمت معالجته فورياً عبر تكامل <strong>Edge-TTS</strong> الحالي (مكتبة edge-tts المرتبطة بخدمة Microsoft Edge الصوتية) لتوليد ملف MP3. يُستخدم النص فقط لإنشاء الصوت ولا يُستخدم لتدريب نماذج.</p>
+    </div>
+    <p>بعد توليد الصوت، يتم إرجاع الملف إليك كـ <code>audio/mpeg</code> ويتم حذف الملف المؤقت من خادمنا تلقائياً بعد الإرسال عبر مهمة خلفية. قد تبقى سجلات الخادم الأساسية (مثل سجلات الطلبات) لفترة تشغيلية محدودة لأغراض التشخيص والأمان، ولا ندعي أنها تُحذف فوراً.</p>
+
+    <h2>4. كيف نستخدم معلوماتك</h2>
+    <ul>
+      <li>تشغيل خدمة تحويل النص إلى صوت وإرجاع الملف الصوتي.</li>
+      <li>تحسين الاستقرار والأداء ومراقبة الأخطاء.</li>
+      <li>الرد على استفساراتك عند مراسلتنا على <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a>.</li>
+      <li>الامتثال للالتزامات القانونية عند الضرورة.</li>
+    </ul>
+
+    <h2>5. المشاركة مع أطراف ثالثة</h2>
+    <p>لا نبيع بياناتك. نشارك الحد الأدنى الضروري فقط مع:</p>
+    <ul>
+      <li><strong>Render</strong> — مزود استضافة الخادم حيث تعمل واجهتنا الخلفية.</li>
+      <li><strong>خدمة Edge-TTS (Microsoft)</strong> — لمعالجة النص وتوليد الصوت؛ يخضع النص المرسل لسياسات مزود الخدمة بقدر معالجته.</li>
+    </ul>
+    <p>لا نشارك محتوى نصك لأغراض إعلانية.</p>
+
+    <h2>6. الإعلانات</h2>
+    <div class="highlight">
+      <p><strong>لم يتم اختيار مزود إعلانات بعد.</strong> لا يعرض NABRA AI حالياً إعلانات من طرف ثالث. سيتم تحديث هذه السياسة بوضوح <strong>قبل</strong> تقديم أي نظام إعلاني، مع توضيح المزود وآليات جمع البيانات والخيارات المتاحة لك.</p>
+    </div>
+
+    <h2>7. الاحتفاظ بالبيانات</h2>
+    <p>نحتفظ بالبيانات فقط للمدة اللازمة لتحقيق الأغراض الموضحة أعلاه:</p>
+    <ul>
+      <li>النص المرسل والملف الصوتي المؤقت: يتم معالجتهما في الذاكرة/الملف المؤقت ويُحذف الملف بعد إرسال الاستجابة عبر مهمة خلفية.</li>
+      <li>سجلات الخادم والتشخيص: قد تُحتفظ لفترة تشغيلية معقولة (مثل أيام/أسابيع) لأغراض الأمان واستكشاف الأخطاء، ولا ندعي حذفها الفوري.</li>
+      <li>مراسلات البريد: تُحفظ طالما كانت ضرورية للرد والمتابعة.</li>
+    </ul>
+    <p>لا ندعي أن جميع البيانات الشخصية أو سجلات الخادم تُحذف فوراً بعد كل طلب.</p>
+
+    <h2>8. الأمان</h2>
+    <p>نستخدم HTTPS وتدابير تقنية معقولة لحماية الخدمة، لكن لا توجد طريقة آمنة 100%. تجنب إدخال كلمات مرور أو معلومات حساسة أو محتوى سري في مربع النص.</p>
+
+    <h2>9. خصوصية الأطفال</h2>
+    <p>الخدمة غير موجهة للأطفال دون 13 عاماً. لا نجمع عن علم بيانات من أطفال. إذا كنت ولي أمر وتعتقد أن طفلاً أرسل معلومات، راسلنا لحذفها.</p>
+
+    <h2>10. حقوقك وخياراتك</h2>
+    <ul>
+      <li>يمكنك مسح التخزين المحلي من إعدادات المتصفح لإزالة تفضيلات المظهر/اللغة.</li>
+      <li>يمكنك طلب حذف مراسلاتك عبر مراسلتنا.</li>
+      <li>يمكنك التوقف عن استخدام الخدمة في أي وقت.</li>
+    </ul>
+
+    <h2>11. النقل الدولي</h2>
+    <p>يُستضاف الخادم على Render وقد تتم معالجة طلباتك في مناطق مختلفة حسب بنية Render وEdge-TTS. باستخدامك الخدمة، فإنك توافق على هذا النقل.</p>
+
+    <h2>12. التغييرات على هذه السياسة</h2>
+    <p>قد نحدث هذه السياسة من حين لآخر. سنقوم بتحديث تاريخ "آخر تحديث" أعلاه وننشر النسخة الجديدة هنا. استمرارك في الاستخدام بعد التحديث يعني موافقتك.</p>
+
+    <h2>13. الاتصال بنا</h2>
+    <p>للأسئلة أو الطلبات المتعلقة بالخصوصية، راسلنا على: <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a></p>
+    <p style="color:var(--muted2);font-size:12px;margin-top:14px">آخر تحديث: 27 نوفمبر 2026 — NABRA AI</p>
+  `
+},
+fr:{
+  brand_sub:"Studio de conversion texte en voix",
+  nav_privacy:"Confidentialité",
+  nav_terms:"Conditions",
+  nav_home:"Accueil",
+  title:"Politique de confidentialité — NABRA AI",
+  subtitle:"Comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez NABRA AI pour la synthèse vocale.",
+  updated:"Dernière mise à jour : 27 novembre 2026",
+  lang_label:"Langue",
+  footer_all:"Tous droits réservés",
+  html:`
+    <h2>1. Introduction et champ d'application</h2>
+    <p>Bienvenue sur NABRA AI (نَبْرَة AI), studio de conversion texte en voix. Cette politique explique comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez notre site <strong>https://sawti-ai.onrender.com</strong> et l'application Android associée. En utilisant le service, vous acceptez ces pratiques. L'accès aux pages légales ne nécessite aucune connexion.</p>
+
+    <h2>2. Informations que nous collectons</h2>
+    <h3>a. Texte que vous soumettez</h3>
+    <p>Lorsque vous utilisez la synthèse vocale, le texte saisi est envoyé via HTTPS à notre serveur hébergé sur <strong>Render</strong> (https://sawti-ai.onrender.com). Nous utilisons ce texte uniquement pour générer le fichier audio demandé.</p>
+    <h3>b. Informations techniques</h3>
+    <p>Nous pouvons collecter automatiquement des informations techniques limitées nécessaires au fonctionnement : adresse IP, type de navigateur/appareil, système d'exploitation et horodatage, à des fins de sécurité et de surveillance des performances.</p>
+    <h3>c. Cookies et stockage local</h3>
+    <p>Nous utilisons le localStorage pour mémoriser vos préférences de thème (clair/sombre) et de langue. Nous n'utilisons pas de cookies de suivi inter-sites.</p>
+    <h3>d. Informations non collectées par défaut</h3>
+    <p>Nous ne demandons pas de création de compte et ne collectons pas votre nom ou e-mail sauf si vous nous contactez volontairement.</p>
+
+    <h2>3. Traitement du texte via Edge-TTS</h2>
+    <div class="highlight">
+      <p><strong>Information importante :</strong> Lorsque vous cliquez sur « Générer », le texte est envoyé à notre serveur Render et traité immédiatement via l'intégration actuelle <strong>Edge-TTS</strong> (bibliothèque edge-tts liée au service Microsoft Edge) pour générer un fichier MP3. Le texte sert uniquement à la génération vocale et n'est pas utilisé pour entraîner des modèles.</p>
+    </div>
+    <p>Après génération, le fichier vous est renvoyé en <code>audio/mpeg</code> et le fichier temporaire est supprimé automatiquement du serveur après l'envoi via une tâche de fond. Les journaux serveur de base peuvent être conservés pendant une durée opérationnelle limitée à des fins de diagnostic et de sécurité ; nous ne prétendons pas qu'ils sont supprimés immédiatement.</p>
+
+    <h2>4. Comment nous utilisons vos informations</h2>
+    <ul>
+      <li>Fournir la synthèse vocale et renvoyer l'audio.</li>
+      <li>Améliorer la stabilité, les performances et surveiller les erreurs.</li>
+      <li>Répondre à vos demandes à <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a>.</li>
+      <li>Respecter les obligations légales le cas échéant.</li>
+    </ul>
+
+    <h2>5. Partage avec des tiers</h2>
+    <p>Nous ne vendons pas vos données. Partage minimal uniquement avec :</p>
+    <ul>
+      <li><strong>Render</strong> — hébergeur du serveur backend.</li>
+      <li><strong>Service Edge-TTS (Microsoft)</strong> — traitement du texte pour générer la voix ; le texte est soumis à leurs politiques dans la mesure de son traitement.</li>
+    </ul>
+
+    <h2>6. Publicité</h2>
+    <div class="highlight">
+      <p><strong>Aucun fournisseur publicitaire n'a encore été sélectionné.</strong> NABRA AI n'affiche actuellement aucune publicité tierce. Cette politique sera mise à jour clairement <strong>avant</strong> l'introduction de toute publicité, en précisant le fournisseur, les données collectées et vos choix.</p>
+    </div>
+
+    <h2>7. Conservation des données</h2>
+    <p>Nous conservons les données uniquement le temps nécessaire :</p>
+    <ul>
+      <li>Texte soumis et fichier audio temporaire : traités en mémoire/fichier temporaire puis supprimés après l'envoi via tâche de fond.</li>
+      <li>Journaux serveur/diagnostic : conservés une durée opérationnelle raisonnable (jours/semaines) pour sécurité et débogage — nous ne prétendons pas une suppression immédiate.</li>
+      <li>Correspondance e-mail : conservée le temps nécessaire au suivi.</li>
+    </ul>
+    <p>Nous ne prétendons pas que toutes les données personnelles ou journaux sont immédiatement supprimés après chaque requête.</p>
+
+    <h2>8. Sécurité</h2>
+    <p>Nous utilisons HTTPS et des mesures raisonnables, mais aucune méthode n'est sûre à 100 %. Évitez de saisir des mots de passe ou informations sensibles.</p>
+
+    <h2>9. Confidentialité des enfants</h2>
+    <p>Le service n'est pas destiné aux moins de 13 ans. Nous ne collectons pas sciemment de données d'enfants.</p>
+
+    <h2>10. Vos droits et choix</h2>
+    <ul>
+      <li>Effacez le localStorage via les paramètres du navigateur.</li>
+      <li>Demandez la suppression de votre correspondance par e-mail.</li>
+      <li>Cessez d'utiliser le service à tout moment.</li>
+    </ul>
+
+    <h2>11. Transferts internationaux</h2>
+    <p>Serveur hébergé sur Render ; le traitement peut avoir lieu dans différentes régions selon Render et Edge-TTS.</p>
+
+    <h2>12. Modifications</h2>
+    <p>Nous pouvons mettre à jour cette politique ; la date de « dernière mise à jour » sera modifiée et la nouvelle version publiée ici.</p>
+
+    <h2>13. Contact</h2>
+    <p>Questions : <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a></p>
+    <p style="color:var(--muted2);font-size:12px;margin-top:14px">Dernière mise à jour : 27 novembre 2026 — NABRA AI</p>
+  `
+},
+en:{
+  brand_sub:"Text to Voice Studio",
+  nav_privacy:"Privacy",
+  nav_terms:"Terms",
+  nav_home:"Home",
+  title:"Privacy Policy — NABRA AI",
+  subtitle:"How we collect, use and protect your information when you use NABRA AI text-to-speech.",
+  updated:"Last updated: November 27, 2026",
+  lang_label:"Language",
+  footer_all:"All rights reserved",
+  html:`
+    <h2>1. Introduction & Scope</h2>
+    <p>Welcome to NABRA AI (نَبْرَة AI), a text-to-speech studio. This policy explains how we collect, use and protect your information when you use <strong>https://sawti-ai.onrender.com</strong> and its Android app. By using the service you agree to these practices. Legal pages are accessible without login.</p>
+
+    <h2>2. Information We Collect</h2>
+    <h3>a. Text you submit</h3>
+    <p>When you use synthesis, the text you enter is sent over HTTPS to our server hosted on <strong>Render</strong> (https://sawti-ai.onrender.com). We use it solely to generate the requested audio file.</p>
+    <h3>b. Technical information</h3>
+    <p>We may automatically collect limited technical data necessary for operation: IP address, browser/device type, OS and timestamp for security and performance monitoring.</p>
+    <h3>c. Cookies & Local Storage</h3>
+    <p>We use localStorage to remember theme (light/dark) and language preferences. We do not use cross-site tracking cookies.</p>
+    <h3>d. Information not collected by default</h3>
+    <p>We do not require account creation and do not collect your name or email unless you contact us voluntarily.</p>
+
+    <h2>3. Text Processing via Edge-TTS</h2>
+    <div class="highlight">
+      <p><strong>Important:</strong> When you click “Generate”, your text is sent to our Render server and processed immediately through our current <strong>Edge-TTS</strong> integration (edge-tts library connected to Microsoft Edge voice service) to generate an MP3. Text is used only for voice generation and not for model training.</p>
+    </div>
+    <p>After generation, the file is returned as <code>audio/mpeg</code> and the temporary file is deleted automatically after sending via a background task. Basic server logs may be retained for a limited operational period for diagnostics and security — we do not claim they are deleted immediately.</p>
+
+    <h2>4. How We Use Information</h2>
+    <ul>
+      <li>Provide text-to-speech and return audio.</li>
+      <li>Improve stability, performance and error monitoring.</li>
+      <li>Respond to your inquiries at <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a>.</li>
+      <li>Comply with legal obligations when required.</li>
+    </ul>
+
+    <h2>5. Sharing with Third Parties</h2>
+    <p>We do not sell your data. Minimal sharing only with:</p>
+    <ul>
+      <li><strong>Render</strong> — backend hosting provider.</li>
+      <li><strong>Edge-TTS Service (Microsoft)</strong> — text processing to generate voice; submitted text is subject to their policies to the extent processed.</li>
+    </ul>
+
+    <h2>6. Advertising</h2>
+    <div class="highlight">
+      <p><strong>No advertising provider has been selected yet.</strong> NABRA AI currently shows no third-party ads. This policy will be clearly updated <strong>before</strong> any advertising is introduced, specifying the provider, data collected and your choices.</p>
+    </div>
+
+    <h2>7. Data Retention</h2>
+    <p>We retain data only as long as needed:</p>
+    <ul>
+      <li>Submitted text and temporary audio: processed in memory/temp file and deleted after response via background task.</li>
+      <li>Server/diagnostic logs: kept for a reasonable operational period (days/weeks) for security/debugging — we do not claim immediate deletion.</li>
+      <li>Email correspondence: kept while needed for follow-up.</li>
+    </ul>
+    <p>We do not claim all personal data or server logs are immediately deleted after each request.</p>
+
+    <h2>8. Security</h2>
+    <p>We use HTTPS and reasonable measures, but no method is 100% secure. Avoid entering passwords or sensitive content.</p>
+
+    <h2>9. Children’s Privacy</h2>
+    <p>Service not directed to children under 13. We do not knowingly collect children’s data.</p>
+
+    <h2>10. Your Rights & Choices</h2>
+    <ul>
+      <li>Clear localStorage via browser settings.</li>
+      <li>Request deletion of correspondence via email.</li>
+      <li>Stop using the service at any time.</li>
+    </ul>
+
+    <h2>11. International Transfers</h2>
+    <p>Server hosted on Render; processing may occur in different regions depending on Render and Edge-TTS infrastructure.</p>
+
+    <h2>12. Changes to This Policy</h2>
+    <p>We may update this policy; the “last updated” date will change and the new version posted here.</p>
+
+    <h2>13. Contact</h2>
+    <p>Questions: <a class="contact" href="mailto:support.nabra.ai@gmail.com">support.nabra.ai@gmail.com</a></p>
+    <p style="color:var(--muted2);font-size:12px;margin-top:14px">Last updated: November 27, 2026 — NABRA AI</p>
+  `
+}
+};
+
+function applyLang(l){
+  const lang=['ar','fr','en'].includes(l)?l:'ar';
+  localStorage.setItem('nabra-legal-lang',lang);
+  document.documentElement.lang=lang;
+  document.documentElement.dir=lang==='ar'?'rtl':'ltr';
+  const d=I18N[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el=>{ const k=el.getAttribute('data-i18n'); if(d[k]!=null) el.textContent=d[k]; });
+  document.getElementById('content').innerHTML=d.html;
+  document.querySelectorAll('.langswitch button').forEach(b=> b.classList.toggle('active', b.dataset.lang===lang));
+}
+const saved=localStorage.getItem('nabra-legal-lang') || 'ar';
+applyLang(saved);
+document.querySelectorAll('.langswitch button').forEach(b=> b.addEventListener('click',()=>applyLang(b.dataset.lang)));
+</script>
+</body>
+</html>
