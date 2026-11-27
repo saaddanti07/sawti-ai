@@ -6,6 +6,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Keyboard } from '@capacitor/keyboard';
 import { App } from '@capacitor/app';
 import { Network } from '@capacitor/network';
+import { Browser } from '@capacitor/browser';
 import { SAWTI_API_BASE_URL } from './config.js';
 
 const isNativeStatic = Capacitor.isNativePlatform();
@@ -31,6 +32,83 @@ function generateDownloadFileName() {
   const mm = pad(now.getMinutes());
   const ss = pad(now.getSeconds());
   return `NABRA_AI_${y}${m}${d}_${hh}${mm}${ss}.mp3`;
+}
+
+// ---------------------------------------------------------------------------
+// Legal — Privacy & Terms (in-app browser with fallback)
+// ---------------------------------------------------------------------------
+const LEGAL_URLS = {
+  privacy: 'https://sawti-ai.onrender.com/privacy',
+  terms: 'https://sawti-ai.onrender.com/terms',
+};
+let isBrowserOpen = false;
+
+async function openLegal(url) {
+  // Network guard — handle offline gracefully with localized toast
+  try {
+    const stat = await Network.getStatus();
+    if (!stat.connected) {
+      setStatus(tr('legal_no_internet'), true);
+      console.warn('[NABRA] legal blocked — offline', url);
+      return;
+    }
+  } catch (_) {
+    if (navigator.onLine === false) {
+      setStatus(tr('legal_no_internet'), true);
+      console.warn('[NABRA] legal blocked — navigator offline', url);
+      return;
+    }
+  }
+  console.log('[NABRA] openLegal', url);
+  // Try Capacitor Browser (in-app) on native — preferred for UX + back navigation
+  if (isNativePlatform()) {
+    try {
+      const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const toolbarColor = theme === 'light' ? '#F5F6FC' : '#080D1B';
+      await Browser.open({ url, presentationStyle: 'popover', toolbarColor });
+      isBrowserOpen = true;
+      console.log('[NABRA] Browser opened', url);
+      return;
+    } catch (e) {
+      console.warn('[NABRA] Browser.open failed, falling back to window.open', e && e.message);
+      // fall through to window.open
+    }
+  }
+  // Fallback: system browser / new tab (works on web and as fallback on native)
+  try {
+    const w = window.open(url, '_blank', 'noopener');
+    if (!w) {
+      console.error('[NABRA] window.open blocked or failed', url);
+      setStatus(tr('legal_open_failed'), true);
+    } else {
+      try { w.focus(); } catch (_) {}
+    }
+  } catch (e) {
+    console.error('[NABRA] legal open failed', e);
+    setStatus(tr('legal_open_failed'), true);
+  }
+}
+
+function initLegalLinks() {
+  document.querySelectorAll('[data-legal]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-legal');
+      const url = LEGAL_URLS[key];
+      if (url) openLegal(url);
+    });
+  });
+  // Listen for browser close to reset flag (Android back / close button)
+  try {
+    Browser.addListener('browserFinished', () => {
+      isBrowserOpen = false;
+      console.log('[NABRA] Browser closed (browserFinished)');
+    });
+  } catch (_) {}
+  try {
+    Browser.addListener('browserPageLoaded', () => {
+      isBrowserOpen = true;
+    });
+  } catch (_) {}
 }
 
 // ---------------------------------------------------------------------------
@@ -115,6 +193,14 @@ const I18N = {
     light: "فاتح",
     language_title: "تغيير اللغة",
     language_desc: "اختر اللغة المفضلة للتطبيق.",
+    legal_title: "القانوني",
+    legal_desc: "سياسة الخصوصية وشروط الاستخدام.",
+    legal_privacy: "سياسة الخصوصية",
+    legal_privacy_desc: "كيف نحمي بياناتك ونستخدمها",
+    legal_terms: "شروط الاستخدام",
+    legal_terms_desc: "حقوقك ومسؤولياتك عند استخدام التطبيق",
+    legal_no_internet: "لا يوجد اتصال بالإنترنت. تحقق من الاتصال وحاول مجدداً.",
+    legal_open_failed: "تعذر فتح الصفحة. حاول مجدداً.",
     nav_home: "الرئيسية",
     nav_files: "ملفاتي",
     nav_settings: "الإعدادات",
@@ -185,6 +271,14 @@ const I18N = {
     light: "Clair",
     language_title: "Changer la langue",
     language_desc: "Choisissez votre langue préférée.",
+    legal_title: "Mentions légales",
+    legal_desc: "Politique de confidentialité et conditions d'utilisation.",
+    legal_privacy: "Politique de confidentialité",
+    legal_privacy_desc: "Comment nous protégeons vos données",
+    legal_terms: "Conditions d'utilisation",
+    legal_terms_desc: "Vos droits et responsabilités",
+    legal_no_internet: "Pas de connexion Internet. Vérifiez votre connexion et réessayez.",
+    legal_open_failed: "Impossible d'ouvrir la page. Réessayez.",
     nav_home: "Accueil",
     nav_files: "Mes fichiers",
     nav_settings: "Paramètres",
@@ -217,15 +311,93 @@ const I18N = {
     offline_banner: "Pas de connexion Internet. L'application nécessite Internet pour convertir.",
     rate_hint: "Vitesse",
     pitch_hint: "Hauteur",
+  },
+  en: {
+    app_name: "NABRA AI",
+    app_sub: "Text to speech studio",
+    splash_sub: "Text to speech studio",
+    splash_tagline: "Turn your words into a living voice.",
+    splash_loading: "Preparing the audio studio...",
+    hero_title: "Turn your words<br>into pro voice",
+    hero_sub: "Unleash your ideas with natural Arabic voices.",
+    write_title: "Enter text",
+    clear: "Clear",
+    editor_label: "Enter the text you want to convert to speech.",
+    placeholder: "Type your text here...",
+    hint_ar: "Arabic supported",
+    voice_title: "Choose voice",
+    voice_settings: "Voice settings",
+    speed: "Reading speed",
+    pitch: "Pitch",
+    slower: "Slower",
+    normal: "Normal",
+    faster: "Faster",
+    lower: "Lower",
+    sharper: "Higher",
+    generate: "Generate voice",
+    generating: "Generating voice...",
+    result_title: "Generated audio",
+    download: "Download MP3",
+    share: "Share",
+    note: "Text is sent to a secure service for processing — avoid sensitive information.",
+    no_files_title: "No files yet",
+    no_files_desc: "Your generated files will appear here. Start by creating your first voice from Home.",
+    go_home: "Go to Home",
+    appearance_title: "Appearance",
+    appearance_desc: "Choose dark or light mode.",
+    dark: "Dark",
+    light: "Light",
+    language_title: "Language",
+    language_desc: "Choose your preferred language.",
+    legal_title: "Legal",
+    legal_desc: "Privacy Policy and Terms of Use.",
+    legal_privacy: "Privacy Policy",
+    legal_privacy_desc: "How we protect and use your data",
+    legal_terms: "Terms of Use",
+    legal_terms_desc: "Your rights and responsibilities",
+    legal_no_internet: "No internet connection. Check your connection and try again.",
+    legal_open_failed: "Could not open the page. Please try again.",
+    nav_home: "Home",
+    nav_files: "My files",
+    nav_settings: "Settings",
+    offline: "No internet — conversion requires connection",
+    need_text: "Please enter text to convert first.",
+    need_audio: "No audio to save yet. Generate voice first.",
+    need_audio_share: "No audio to share yet. Generate voice first.",
+    file_saved_downloads: "Audio file saved to Downloads folder",
+    file_saved_documents: "Audio file saved to Documents folder",
+    download_started: "MP3 download started.",
+    generating_status: "Conversion may take a few seconds depending on length and connection. If the server is sleeping, the first request may take longer.",
+    generated_success: "Voice generated successfully. Listen, save or share it.",
+    no_internet: "No internet connection. Conversion requires internet — check your connection.",
+    server_not_config: "Server URL not configured. Set SAWTI_API_BASE_URL in src/config.js and rebuild.",
+    voices_timeout: "Voices loading timed out. Server may be waking up — try again. Using default list.",
+    voices_network: "Could not reach server for voices (network/CORS). Using default list — check internet.",
+    voices_generic: "Could not load voices. Using default list — check connection.",
+    tts_timeout: "Request timed out. Server may be waking up — wait 30s and try again.",
+    tts_network_cors: "Could not reach server (network/CORS). Check internet and that server allows https://localhost.",
+    tts_network: "Could not reach server. Check internet connection.",
+    empty_blob: "Server returned empty response. Try again.",
+    audio_play_error: "Audio playback error. Try saving and playing with an external app.",
+    autoplay_blocked: "Voice generated — tap play to listen.",
+    save_empty: "Audio file is empty. Try generating again.",
+    save_invalid: "File is not valid audio. Try generating again.",
+    save_failed: "Could not save file. Check storage and try again.",
+    share_cancelled: "Share cancelled.",
+    share_failed: "Could not share file. Try again.",
+    share_not_supported: "Direct share not supported in this browser. You can download the MP3 instead.",
+    offline_banner: "No internet connection. App needs internet to convert text to speech.",
+    rate_hint: "Speed",
+    pitch_hint: "Pitch",
   }
 };
-function getLang(){ try{ const l=localStorage.getItem('nabra-lang'); if(l==='fr'||l==='ar') return l; }catch{} return 'ar'; }
+function getLang(){ try{ const l=localStorage.getItem('nabra-lang'); if(l==='fr'||l==='ar'||l==='en') return l; }catch{} return 'ar'; }
 function tr(key){ const lang=getLang(); const d=I18N[lang]||I18N.ar; return d[key]||I18N.ar[key]||key; }
 function applyLanguage(lang){
-  const l = lang==='fr' ? 'fr' : 'ar';
+  const l = (lang==='fr'||lang==='en') ? lang : 'ar';
   try{ localStorage.setItem('nabra-lang', l); }catch{}
   document.documentElement.setAttribute('lang', l);
-  document.documentElement.setAttribute('dir', l==='fr' ? 'ltr' : 'rtl');
+  document.documentElement.setAttribute('dir', l==='ar' ? 'rtl' : 'ltr');
   // update data-i18n texts
   document.querySelectorAll('[data-i18n]').forEach(el=>{
     const key=el.getAttribute('data-i18n');
@@ -239,10 +411,18 @@ function applyLanguage(lang){
   });
   // aria labels for bottom nav
   const nav=document.querySelector('.bottom-nav');
-  if(nav) nav.setAttribute('aria-label', l==='fr' ? 'Navigation' : 'التنقل السفلي');
+  if(nav){
+    if(l==='fr') nav.setAttribute('aria-label', 'Navigation');
+    else if(l==='en') nav.setAttribute('aria-label', 'Navigation');
+    else nav.setAttribute('aria-label', 'التنقل السفلي');
+  }
   // voice selector aria
   const vsel=document.getElementById('voice');
-  if(vsel) vsel.setAttribute('aria-label', l==='fr' ? 'Choisir la voix' : 'اختر الصوت');
+  if(vsel){
+    if(l==='fr') vsel.setAttribute('aria-label', 'Choisir la voix');
+    else if(l==='en') vsel.setAttribute('aria-label', 'Choose voice');
+    else vsel.setAttribute('aria-label', 'اختر الصوت');
+  }
   // update language switcher active
   document.querySelectorAll('#languageSwitcher .theme-btn').forEach(btn=>{
     btn.classList.toggle('active', btn.getAttribute('data-lang')===l);
@@ -256,18 +436,26 @@ function applyLanguage(lang){
   }catch{}
   // Update GENERATE_LABEL_HTML global for reset
   try{ window.GENERATE_LABEL_HTML = `<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">${tr('generate')}</span>`; }catch{}
+  // update legal aria labels if present
+  try{
+    const privacyBtn=document.querySelector('[data-legal="privacy"]');
+    const termsBtn=document.querySelector('[data-legal="terms"]');
+    if(privacyBtn) privacyBtn.setAttribute('aria-label', tr('legal_privacy'));
+    if(termsBtn) termsBtn.setAttribute('aria-label', tr('legal_terms'));
+  }catch{}
   console.log('[NABRA] language', l);
 }
 function initLanguage(){
   let saved; try{ saved=localStorage.getItem('nabra-lang'); }catch{ saved=null; }
-  // If no saved, keep ar default (or detect navigator language fr)
+  // If no saved, keep ar default (or detect navigator language fr/en)
   if(!saved){
     try{
       const navLang=(navigator.language||'').toLowerCase();
       if(navLang.startsWith('fr')) saved='fr';
+      else if(navLang.startsWith('en')) saved='en';
     }catch{}
   }
-  const lang = saved==='fr' ? 'fr' : 'ar';
+  const lang = (saved==='fr'||saved==='en') ? saved : 'ar';
   applyLanguage(lang);
   // listen to language switcher
   document.querySelectorAll('#languageSwitcher .theme-btn').forEach(btn=>{
@@ -1137,6 +1325,8 @@ shareBtn.addEventListener('click', shareMp3);
 
 // Init custom player
 setupCustomPlayer();
+// Init legal links (in-app browser + fallback, RTL + themes preserved)
+initLegalLinks();
 // Init voice meta and settings hint on load
 updateVoiceMeta();
 updateSettingsHint();
@@ -1168,7 +1358,15 @@ async function initNative() {
   window.addEventListener('online', () => setOffline(false));
 
   try {
-    await App.addListener('backButton', ({ canGoBack }) => {
+    await App.addListener('backButton', async ({ canGoBack }) => {
+      // If in-app browser is open, close it first — premium back navigation
+      if (isBrowserOpen) {
+        try {
+          await Browser.close();
+        } catch (_) {}
+        isBrowserOpen = false;
+        return;
+      }
       // Handle bottom nav: if not on home, go home first
       const activeNav = document.querySelector('.bottom-nav .nav-item.active');
       const activeTab = activeNav ? activeNav.getAttribute('data-nav') : 'home';

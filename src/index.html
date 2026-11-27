@@ -7,7 +7,7 @@
   <meta name="description" content="NABRA AI — نَبْرَة AI — حوّل كلماتك إلى صوت ينبض بالحياة.">
   <title>NABRA AI — نَبْرَة AI | استوديو تحويل النص إلى صوت</title>
   <link rel="stylesheet" href="./style.css">
-  <script>try{const s=localStorage.getItem('nabra-theme');const m=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';const t=s||m;document.documentElement.setAttribute('data-theme',t);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#F5F6FC':'#080D1B');const l=localStorage.getItem('nabra-lang');const lang=l||'ar';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='fr'?'ltr':'rtl');}catch(e){}</script>
+  <script>try{const s=localStorage.getItem('nabra-theme');const m=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';const t=s||m;document.documentElement.setAttribute('data-theme',t);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',t==='light'?'#F5F6FC':'#080D1B');const l=localStorage.getItem('nabra-lang');const lang=(l==='fr'||l==='en'||l==='ar')?l:'ar';document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',lang==='ar'?'rtl':'ltr');}catch(e){}</script>
 </head>
 <body>
   <!-- Premium Splash Screen — visible on every cold launch -->
@@ -251,6 +251,42 @@
               <div class="theme-switcher" style="margin-top:8px;" id="languageSwitcher">
                 <button class="theme-btn active" data-lang="ar" type="button">العربية</button>
                 <button class="theme-btn" data-lang="fr" type="button">Français</button>
+                <button class="theme-btn" data-lang="en" type="button">English</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="section">
+            <h2 data-i18n="legal_title">القانوني</h2>
+            <div class="card settings-card legal-card">
+              <div class="settings-row" style="padding:4px 2px 2px;">
+                <div>
+                  <div class="settings-title" data-i18n="legal_title">القانوني</div>
+                  <div class="settings-sub" data-i18n="legal_desc">سياسة الخصوصية وشروط الاستخدام.</div>
+                </div>
+              </div>
+              <div class="legal-list">
+                <button class="legal-item" data-legal="privacy" type="button" aria-label="Privacy Policy">
+                  <span class="legal-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                  </span>
+                  <span class="legal-text">
+                    <span class="legal-label" data-i18n="legal_privacy">سياسة الخصوصية</span>
+                    <span class="legal-sub" data-i18n="legal_privacy_desc">كيف نحمي بياناتك ونستخدمها</span>
+                  </span>
+                  <svg class="legal-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <div class="legal-divider" aria-hidden="true"></div>
+                <button class="legal-item" data-legal="terms" type="button" aria-label="Terms of Use">
+                  <span class="legal-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="9 13 9 17"/><line x1="9" y1="13" x2="9" y2="13"/></svg>
+                  </span>
+                  <span class="legal-text">
+                    <span class="legal-label" data-i18n="legal_terms">شروط الاستخدام</span>
+                    <span class="legal-sub" data-i18n="legal_terms_desc">حقوقك ومسؤولياتك عند استخدام التطبيق</span>
+                  </span>
+                  <svg class="legal-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
               </div>
             </div>
           </div>
