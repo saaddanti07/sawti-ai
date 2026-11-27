@@ -1,14 +1,13 @@
 # بناء تطبيق NABRA AI (نَبْرَة AI) لأندرويد باستخدام GitHub Actions
 #
-# - عند كل push إلى main أو تشغيل يدوي (workflow_dispatch) يتم بناء APK تجريبي (debug)
-#   ورفعه كـ artifact قابل للتنزيل.
-# - لبناء نسخة موقعة (release) فعّل خيار "Build signed release" عند التشغيل اليدوي
-#   بعد ضبط الأسرار (Secrets) التالية في إعدادات المستودع:
-#     ANDROID_KEYSTORE_BASE64 : ملف keystore بصيغة Base64
-#     KEYSTORE_PASSWORD       : كلمة مرور keystore
-#     KEY_ALIAS               : اسم المفتاح (alias)
-#     KEY_PASSWORD            : كلمة مرور المفتاح
-#   لا تُنشئ مفاتيح وهمية — استخدم مفتاحاً حقيقياً أنشأته بنفسك.
+# - عند كل push إلى main أو pull_request يتم بناء APK تجريبي (debug) ورفعه كـ artifact.
+# - لبناء نسخة موقعة (release) فعّل خيار "Build signed release" عند التشغيل اليدوي (workflow_dispatch)
+#   بعد ضبط الأسرار (Secrets) الأربعة المطلوبة في إعدادات المستودع:
+#     ANDROID_KEYSTORE_BASE64    : ملف keystore بصيغة Base64 (محتوى release.jks)
+#     ANDROID_KEYSTORE_PASSWORD  : كلمة مرور keystore (storePassword)
+#     ANDROID_KEY_ALIAS          : اسم المفتاح (alias)
+#     ANDROID_KEY_PASSWORD       : كلمة مرور المفتاح (keyPassword)
+#   لا تُنشئ مفاتيح وهمية — استخدم مفتاحاً حقيقياً أنشأته بنفسك، ولا تلتزم الملف ولا كلمات المرور.
 
 name: Build Android APK
 
@@ -20,7 +19,7 @@ on:
   workflow_dispatch:
     inputs:
       build_release:
-        description: 'بناء نسخة موقعة (release) — يتطلب ضبط الأسرار'
+        description: 'بناء نسخة موقعة (release) — يتطلب ضبط الأسرار الأربعة'
         required: false
         default: false
         type: boolean
@@ -130,24 +129,102 @@ jobs:
           npm run build
           npx cap sync android
 
-      - name: استعادة ملف التوقيع من الأسرار
+      - name: التحقق من وجود أسرار التوقيع
         run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
-          echo "storeFile=release.keystore" >> android/gradle.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> android/gradle.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::السر ANDROID_KEYSTORE_BASE64 غير مضبوط — أنشئ keystore وحوله إلى Base64 ثم أضفه في Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ]; then
+            echo "::error::السر ANDROID_KEYSTORE_PASSWORD غير مضبوط"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ]; then
+            echo "::error::السر ANDROID_KEY_ALIAS غير مضبوط"
+            exit 1
+          fi
+          if [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ]; then
+            echo "::error::السر ANDROID_KEY_PASSWORD غير مضبوط"
+            exit 1
+          fi
+          echo "جميع أسرار التوقيع موجودة."
 
-      - name: بناء AAB موقع (Release)
+      - name: إعداد بيئة التوقيع (فك تشفير Keystore)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS_VAL: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -e
+          # فك تشفير Keystore إلى موقع مؤقت آمن (لا يُلتزم)
+          echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+          chmod 600 "$RUNNER_TEMP/release.keystore"
+          if [ ! -s "$RUNNER_TEMP/release.keystore" ]; then
+            echo "::error::فشل فك تشفير Keystore — الملف فارغ أو Base64 غير صحيح"
+            exit 1
+          fi
+          echo "Keystore decoded to $RUNNER_TEMP/release.keystore (size $(stat -c%s "$RUNNER_TEMP/release.keystore") bytes)"
+
+          # حقن إعدادات التوقيع في gradle.properties (مؤقت، لا يُلتزم)
+          # android/app/build.gradle يقرأ storeFile/storePassword/keyAlias/keyPassword من project properties
+          {
+            echo ""
+            echo "# Release signing injected by GitHub Actions (temporary)"
+            echo "storeFile=$RUNNER_TEMP/release.keystore"
+            echo "storePassword=$STORE_PASS"
+            echo "keyAlias=$KEY_ALIAS_VAL"
+            echo "keyPassword=$KEY_PASS"
+          } >> android/gradle.properties
+
+          echo "Signing properties injected into android/gradle.properties (masked)"
+          # لا تطبع كلمات المرور — فقط تأكد من وجود الخاصية دون إظهار القيمة
+          if ! grep -q "^storeFile=" android/gradle.properties; then
+            echo "::error::فشل حقن storeFile"
+            exit 1
+          fi
+          echo "Signing environment ready (secrets masked, not printed)"
+
+      - name: بناء APK موقع (Release)
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew bundleRelease --stacktrace
+          ./gradlew assembleRelease --stacktrace
 
-      - name: رفع AAB كـ artifact
+      - name: التحقق من توقيع APK (apksigner)
+        run: |
+          set -e
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          if [ ! -f "$APK" ]; then
+            echo "::error::لم يتم العثور على APK الموقع في $APK"
+            ls -R android/app/build/outputs || true
+            exit 1
+          fi
+          echo "APK found: $APK ($(du -h "$APK" | cut -f1))"
+          echo "Verifying signature with apksigner..."
+          # apksigner موجود في build-tools/36.0.0 (أضيف إلى PATH سابقاً)
+          if ! command -v apksigner >/dev/null 2>&1; then
+            echo "apksigner not in PATH, trying explicit path"
+            APKSIGNER="/usr/local/lib/android/sdk/build-tools/36.0.0/apksigner"
+          else
+            APKSIGNER="apksigner"
+          fi
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          echo "✓ APK signature verification passed"
+          # إظهار معلومات إضافية دون كشف أسرار
+          ls -lh "$APK"
+          echo "APK path: $APK"
+
+      - name: تنظيف Keystore المؤقت
+        if: always()
+        run: |
+          shred -u "$RUNNER_TEMP/release.keystore" 2>/dev/null || rm -f "$RUNNER_TEMP/release.keystore" || true
+          echo "Temporary keystore cleaned"
+
+      - name: رفع APK الموقع كـ artifact
         uses: actions/upload-artifact@v4
         with:
-          name: sawti-ai-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: sawti-ai-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 90
