@@ -34,6 +34,315 @@ function generateDownloadFileName() {
 }
 
 // ---------------------------------------------------------------------------
+// Theme — dark / light with localStorage + system preference
+// ---------------------------------------------------------------------------
+function applyTheme(theme) {
+  const t = theme === 'light' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('nabra-theme', t); } catch (_) {}
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', t === 'light' ? '#F5F6FC' : '#080D1B');
+  // Update toggle icons is handled via CSS [data-theme] selectors
+  // Update settings switcher active state
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === t);
+  });
+  // Update StatusBar for native
+  if (isNativePlatform()) {
+    try {
+      const bg = t === 'light' ? '#F5F6FC' : '#080D1B';
+      StatusBar.setBackgroundColor({ color: bg });
+      StatusBar.setStyle({ style: t === 'light' ? Style.Light : Style.Dark });
+    } catch (_) {}
+  }
+  console.log('[NABRA] theme', t);
+}
+function initTheme() {
+  // Already set via inline script, but ensure switcher reflects
+  const saved = (() => { try { return localStorage.getItem('nabra-theme'); } catch { return null; } })();
+  const systemLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+  const initial = saved || (systemLight ? 'light' : 'dark');
+  applyTheme(initial);
+  // Listen to system changes only if user hasn't chosen
+  try {
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+      try {
+        if (!localStorage.getItem('nabra-theme')) applyTheme(e.matches ? 'light' : 'dark');
+      } catch (_) {}
+    });
+  } catch (_) {}
+}
+// Init early
+initTheme();
+// ---------------------------------------------------------------------------
+// Language — Arabic / French with RTL/LTR, persistence, real switching
+// ---------------------------------------------------------------------------
+const I18N = {
+  ar: {
+    app_name: "NABRA AI",
+    app_sub: "استوديو تحويل النص إلى صوت",
+    splash_sub: "استوديو تحويل النص إلى صوت",
+    splash_tagline: "حوّل كلماتك إلى صوت ينبض بالحياة.",
+    splash_loading: "جاري تجهيز الاستوديو الصوتي...",
+    hero_title: "حوّل كلماتك<br>إلى صوت احترافي",
+    hero_sub: "أطلق العنان لأفكارك مع أصوات عربية طبيعية.",
+    write_title: "اكتب النص",
+    clear: "مسح",
+    editor_label: "أدخل النص الذي تريد تحويله إلى صوت.",
+    placeholder: "اكتب النص هنا...",
+    hint_ar: "يدعم العربية",
+    voice_title: "اختر الصوت",
+    voice_settings: "إعدادات الصوت",
+    speed: "سرعة القراءة",
+    pitch: "حدة الصوت",
+    slower: "أبطأ",
+    normal: "طبيعي",
+    faster: "أسرع",
+    lower: "أخفض",
+    sharper: "أحدّ",
+    generate: "إنشاء الصوت",
+    generating: "جارٍ إنشاء الصوت...",
+    result_title: "الصوت الناتج",
+    download: "تنزيل MP3",
+    share: "مشاركة",
+    note: "يُرسل النص إلى خدمة تحويل آمنة لمعالجته — تجنّب إدخال معلومات حساسة.",
+    no_files_title: "لا توجد ملفات بعد",
+    no_files_desc: "الملفات التي تنشئها وتحفظها ستظهر هنا. ابدأ بإنشاء صوتك الأول من الرئيسية.",
+    go_home: "الذهاب إلى الرئيسية",
+    appearance_title: "تغيير المظهر",
+    appearance_desc: "اختر الوضع الداكن أو الفاتح.",
+    dark: "داكن",
+    light: "فاتح",
+    language_title: "تغيير اللغة",
+    language_desc: "اختر اللغة المفضلة للتطبيق.",
+    nav_home: "الرئيسية",
+    nav_files: "ملفاتي",
+    nav_settings: "الإعدادات",
+    offline: "لا يوجد اتصال بالإنترنت — يتطلب التحويل اتصالاً",
+    need_text: "اكتب النص الذي تريد تحويله أولاً.",
+    need_audio: "لا يوجد صوت لحفظه بعد. حوّل النص إلى صوت أولاً.",
+    need_audio_share: "لا يوجد صوت لمشاركته بعد. حوّل النص إلى صوت أولاً.",
+    file_saved_downloads: "تم حفظ الملف الصوتي في مجلد التنزيلات",
+    file_saved_documents: "تم حفظ الملف الصوتي في مجلد المستندات",
+    download_started: "بدأ تنزيل ملف MP3.",
+    generating_status: "قد يستغرق التحويل بضع ثوانٍ حسب طول النص وسرعة الإنترنت. إذا كان الخادم نائماً فقد يستغرق أول طلب وقتاً أطول.",
+    generated_success: "تم إنشاء الصوت بنجاح. استمع الآن أو احفظه أو شاركه.",
+    no_internet: "لا يوجد اتصال بالإنترنت. يتطلب التحويل اتصالاً بالإنترنت — تحقق من الاتصال وحاول مجدداً.",
+    server_not_config: "لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL ثم أعد بناء التطبيق.",
+    voices_timeout: "انتهت مهلة تحميل الأصوات. قد يكون الخادم يستيقظ — حاول مجدداً. يتم استخدام القائمة الافتراضية.",
+    voices_network: "تعذر الاتصال بالخادم لتحميل الأصوات (قد يكون السبب الشبكة أو CORS). يتم استخدام القائمة الافتراضية — تحقق من الإنترنت.",
+    voices_generic: "تعذر تحميل الأصوات من الخادم. يتم استخدام القائمة الافتراضية — تحقق من الاتصال.",
+    tts_timeout: "انتهت مهلة الطلب. قد يكون الخادم يستيقظ من وضع النوم — انتظر 30 ثانية وحاول مجدداً.",
+    tts_network_cors: "تعذر الاتصال بالخادم (فشل الشبكة أو حجب CORS). تحقق من الإنترنت وأن الخادم يسمح بطلبات https://localhost. افتح chrome://inspect لمزيد التفاصيل.",
+    tts_network: "تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مجدداً.",
+    empty_blob: "الخادم أعاد استجابة فارغة. حاول مجدداً.",
+    audio_play_error: "حدث خطأ أثناء تشغيل الصوت. حاول حفظ الملف وتشغيله ببرنامج خارجي.",
+    autoplay_blocked: "تم إنشاء الصوت، اضغط تشغيل للاستماع.",
+    save_empty: "الملف الصوتي فارغ. حاول توليد الصوت مرة أخرى.",
+    save_invalid: "الملف ليس صوتاً صالحاً. حاول توليد الصوت مرة أخرى.",
+    save_failed: "تعذر حفظ الملف. تحقق من المساحة وحاول مرة أخرى.",
+    share_cancelled: "تم إلغاء المشاركة.",
+    share_failed: "تعذر مشاركة الملف. حاول مرة أخرى.",
+    share_not_supported: "المشاركة المباشرة غير مدعومة في هذا المتصفح. يمكنك تنزيل ملف MP3 بدلاً من ذلك.",
+    offline_banner: "لا يوجد اتصال بالإنترنت. يتطلب التطبيق اتصالاً بالإنترنت لتحويل النص إلى صوت.",
+    rate_hint: "السرعة",
+    pitch_hint: "الحدة",
+  },
+  fr: {
+    app_name: "NABRA AI",
+    app_sub: "Studio de conversion texte en voix",
+    splash_sub: "Studio de conversion texte en voix",
+    splash_tagline: "Transformez vos mots en une voix vivante.",
+    splash_loading: "Préparation du studio audio...",
+    hero_title: "Transformez vos<br>mots en voix pro",
+    hero_sub: "Libérez vos idées avec des voix arabes naturelles.",
+    write_title: "Saisir le texte",
+    clear: "Effacer",
+    editor_label: "Entrez le texte à convertir en voix.",
+    placeholder: "Écrivez votre texte ici...",
+    hint_ar: "Prend en charge l'arabe",
+    voice_title: "Choisir la voix",
+    voice_settings: "Paramètres vocaux",
+    speed: "Vitesse de lecture",
+    pitch: "Hauteur de la voix",
+    slower: "Plus lent",
+    normal: "Normal",
+    faster: "Plus rapide",
+    lower: "Plus grave",
+    sharper: "Plus aigu",
+    generate: "Générer la voix",
+    generating: "Génération en cours...",
+    result_title: "Audio généré",
+    download: "Télécharger MP3",
+    share: "Partager",
+    note: "Le texte est envoyé à un service sécurisé — évitez les informations sensibles.",
+    no_files_title: "Aucun fichier",
+    no_files_desc: "Vos fichiers générés apparaîtront ici. Créez votre premier audio depuis l'accueil.",
+    go_home: "Aller à l'accueil",
+    appearance_title: "Changer le thème",
+    appearance_desc: "Choisissez le mode sombre ou clair.",
+    dark: "Sombre",
+    light: "Clair",
+    language_title: "Changer la langue",
+    language_desc: "Choisissez votre langue préférée.",
+    nav_home: "Accueil",
+    nav_files: "Mes fichiers",
+    nav_settings: "Paramètres",
+    offline: "Pas de connexion Internet — conversion nécessite une connexion",
+    need_text: "Entrez d'abord le texte à convertir.",
+    need_audio: "Aucun audio à enregistrer. Générez d'abord la voix.",
+    need_audio_share: "Aucun audio à partager. Générez d'abord la voix.",
+    file_saved_downloads: "Fichier audio enregistré dans le dossier Téléchargements",
+    file_saved_documents: "Fichier audio enregistré dans le dossier Documents",
+    download_started: "Téléchargement MP3 démarré.",
+    generating_status: "La conversion peut prendre quelques secondes selon la longueur et la connexion. Si le serveur est en veille, la première requête peut être plus longue.",
+    generated_success: "Voix générée avec succès. Écoutez, enregistrez ou partagez.",
+    no_internet: "Pas de connexion Internet. La conversion nécessite Internet — vérifiez votre connexion.",
+    server_not_config: "URL du serveur non configurée. Configurez SAWTI_API_BASE_URL dans src/config.js.",
+    voices_timeout: "Délai de chargement des voix dépassé. Le serveur se réveille peut-être — réessayez. Liste par défaut utilisée.",
+    voices_network: "Impossible de joindre le serveur pour les voix (réseau/CORS). Liste par défaut — vérifiez Internet.",
+    voices_generic: "Impossible de charger les voix. Liste par défaut — vérifiez la connexion.",
+    tts_timeout: "Délai dépassé. Le serveur se réveille peut-être — attendez 30s et réessayez.",
+    tts_network_cors: "Impossible de joindre le serveur (réseau/CORS). Vérifiez Internet et que le serveur autorise https://localhost.",
+    tts_network: "Impossible de joindre le serveur. Vérifiez Internet.",
+    empty_blob: "Réponse vide du serveur. Réessayez.",
+    audio_play_error: "Erreur de lecture audio. Essayez d'enregistrer et lire avec une autre application.",
+    autoplay_blocked: "Audio généré — appuyez sur lecture.",
+    save_empty: "Fichier audio vide. Régénérez la voix.",
+    save_invalid: "Fichier non audio. Régénérez.",
+    save_failed: "Impossible d'enregistrer. Vérifiez l'espace et réessayez.",
+    share_cancelled: "Partage annulé.",
+    share_failed: "Impossible de partager. Réessayez.",
+    share_not_supported: "Partage non pris en charge dans ce navigateur. Téléchargez le MP3.",
+    offline_banner: "Pas de connexion Internet. L'application nécessite Internet pour convertir.",
+    rate_hint: "Vitesse",
+    pitch_hint: "Hauteur",
+  }
+};
+function getLang(){ try{ const l=localStorage.getItem('nabra-lang'); if(l==='fr'||l==='ar') return l; }catch{} return 'ar'; }
+function tr(key){ const lang=getLang(); const d=I18N[lang]||I18N.ar; return d[key]||I18N.ar[key]||key; }
+function applyLanguage(lang){
+  const l = lang==='fr' ? 'fr' : 'ar';
+  try{ localStorage.setItem('nabra-lang', l); }catch{}
+  document.documentElement.setAttribute('lang', l);
+  document.documentElement.setAttribute('dir', l==='fr' ? 'ltr' : 'rtl');
+  // update data-i18n texts
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const key=el.getAttribute('data-i18n');
+    const val=tr(key);
+    if(key==='hero_title'){ el.innerHTML=val; } else { el.textContent=val; }
+  });
+  // placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key=el.getAttribute('data-i18n-placeholder');
+    el.setAttribute('placeholder', tr(key));
+  });
+  // aria labels for bottom nav
+  const nav=document.querySelector('.bottom-nav');
+  if(nav) nav.setAttribute('aria-label', l==='fr' ? 'Navigation' : 'التنقل السفلي');
+  // voice selector aria
+  const vsel=document.getElementById('voice');
+  if(vsel) vsel.setAttribute('aria-label', l==='fr' ? 'Choisir la voix' : 'اختر الصوت');
+  // update language switcher active
+  document.querySelectorAll('#languageSwitcher .theme-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.getAttribute('data-lang')===l);
+  });
+  // update settings hint (rate/pitch)
+  try{ if(typeof updateSettingsHint==='function') updateSettingsHint(); }catch{}
+  // update generate label html
+  try{
+    const gen=document.getElementById('generate');
+    if(gen) gen.innerHTML=`<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">${tr('generate')}</span>`;
+  }catch{}
+  // Update GENERATE_LABEL_HTML global for reset
+  try{ window.GENERATE_LABEL_HTML = `<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">${tr('generate')}</span>`; }catch{}
+  console.log('[NABRA] language', l);
+}
+function initLanguage(){
+  let saved; try{ saved=localStorage.getItem('nabra-lang'); }catch{ saved=null; }
+  // If no saved, keep ar default (or detect navigator language fr)
+  if(!saved){
+    try{
+      const navLang=(navigator.language||'').toLowerCase();
+      if(navLang.startsWith('fr')) saved='fr';
+    }catch{}
+  }
+  const lang = saved==='fr' ? 'fr' : 'ar';
+  applyLanguage(lang);
+  // listen to language switcher
+  document.querySelectorAll('#languageSwitcher .theme-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const v=btn.getAttribute('data-lang');
+      if(v) applyLanguage(v);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Premium Splash Screen — animated startup experience
+// ---------------------------------------------------------------------------
+// Visible immediately via HTML; hides native splash quickly to reveal in-app splash,
+// then keeps in-app splash for a premium minimum duration regardless of backend.
+const splashEl = document.getElementById('splash');
+const SPLASH_MIN_MS = 1700;   // premium feel, lightweight
+const SPLASH_MAX_MS = 3200;   // safety: never block app if Render sleeping
+let splashStart = Date.now();
+let splashHidden = false;
+let splashTimers = [];
+
+function hideSplash(reason = 'ready') {
+  if (splashHidden || !splashEl) return;
+  splashHidden = true;
+  try { console.log('[NABRA] splash hide', reason); } catch {}
+  try { splashEl.classList.add('hidden'); } catch {}
+  try { splashEl.setAttribute('aria-hidden', 'true'); } catch {}
+  // Clean up animation resources after CSS transition (0.48s)
+  const t = setTimeout(() => {
+    try { splashEl.style.display = 'none'; } catch {}
+    // remove glow animations to free GPU
+    try { splashEl.querySelectorAll('*').forEach(n => { n.style.animation = 'none'; }); } catch {}
+    splashTimers.forEach(clearTimeout);
+    splashTimers = [];
+  }, 600);
+  splashTimers.push(t);
+  // Ensure native splash also hidden
+  try { SplashScreen.hide(); } catch {}
+}
+
+function scheduleSplashHide(reason = 'ready') {
+  if (splashHidden) return;
+  const elapsed = Date.now() - splashStart;
+  const remainMin = Math.max(0, SPLASH_MIN_MS - elapsed);
+  const t = setTimeout(() => hideSplash(reason), remainMin);
+  splashTimers.push(t);
+  // Hard max timeout — hide regardless even if called late
+  const remainMax = Math.max(0, SPLASH_MAX_MS - elapsed);
+  const t2 = setTimeout(() => hideSplash('max-timeout'), remainMax);
+  splashTimers.push(t2);
+}
+
+function initSplash() {
+  splashStart = Date.now();
+  // Hide native Capacitor splash quickly to reveal branded in-app splash (avoids white flash behind).
+  // If launchAutoHide is false, native stays until we call hide().
+  const hideNative = () => { try { SplashScreen.hide(); } catch {} };
+  if (isNativePlatform()) {
+    // slight delay ensures webview rendered behind native before hide → no white flash
+    const tn = setTimeout(hideNative, 120);
+    splashTimers.push(tn);
+  } else {
+    // web: ensure native hide not needed, just ensure splash visible
+    try { SplashScreen.hide(); } catch {}
+  }
+  // Always schedule branded splash hide after premium minimum, independent of voices fetch
+  scheduleSplashHide('init');
+}
+
+initSplash();
+initLanguage();
+
+
+// ---------------------------------------------------------------------------
 // API base URL — centralized single source of truth
 // ---------------------------------------------------------------------------
 // SAWTI_API_BASE_URL in src/config.js is the single configurable value:
@@ -120,7 +429,7 @@ const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
 const waveformEl = document.getElementById('waveform');
 
-const GENERATE_LABEL_HTML = '<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">تحويل النص إلى صوت</span>';
+const GENERATE_LABEL_HTML = '<span class="btn-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg></span><span class="btn-label">إنشاء الصوت</span>';
 const TTS_TIMEOUT_MS = 120000; // Render free tier may need time to wake up
 const VOICES_TIMEOUT_MS = 30000;
 
@@ -128,6 +437,7 @@ let currentUrl = null; // object URL for <audio>
 let currentBlob = null; // last generated MP3 blob
 let nativeFileUri = null; // cached file:// URI written via Filesystem
 let nativeFileName = 'nabra-ai.mp3';
+let currentFileName = null; // last generated timestamped filename for display/download
 
 function setStatus(message, isError = false) {
   statusEl.textContent = message;
@@ -149,10 +459,7 @@ function updateVoiceMeta() {
   if (!voiceMeta || !voiceEl) return;
   const opt = voiceEl.options[voiceEl.selectedIndex];
   if (!opt) return;
-  // opt.text is like "أمينة — جزائرية (أنثى)"
   const text = opt.textContent.trim();
-  // Extract for meta: keep as is but shorten
-  // Show as "جزائرية · أنثى · Amina" - derive English id for hint
   const id = voiceEl.value; // ar-DZ-AminaNeural
   const eng = id.split('-').pop().replace('Neural','');
   const parts = text.split(' — ');
@@ -161,9 +468,25 @@ function updateVoiceMeta() {
     const rest = parts[1]; // "جزائرية (أنثى)"
     const accent = rest.split(' (')[0];
     const gender = rest.includes('(') ? rest.split('(')[1].replace(')','') : '';
-    voiceMeta.textContent = `${accent} · ${gender} · ${eng}`;
+    voiceMeta.textContent = `${name} · ${accent} · ${gender}`;
   } else {
     voiceMeta.textContent = text;
+  }
+  // Premium avatar — color by gender, initial letter
+  const avatar = document.getElementById('voiceAvatar');
+  if (avatar) {
+    const isFemale = voiceMeta.textContent.includes('أنثى');
+    const bg = isFemale ? '#8B5CF6' : '#4F83FF';
+    const name = parts[0] ? parts[0].trim().charAt(0) : 'A';
+    avatar.style.background = bg;
+    avatar.style.color = '#FFFFFF';
+    const img = avatar.querySelector('img');
+    if (img) {
+      avatar.innerHTML = `<span style="font:700 14px Tahoma">${name}</span>`;
+      avatar.style.display = 'inline-flex';
+      avatar.style.alignItems = 'center';
+      avatar.style.justifyContent = 'center';
+    }
   }
 }
 
@@ -199,13 +522,14 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = TTS_TIMEOUT_MS) {
 
 function getHttpArabicMessage(status, detail) {
   if (detail && typeof detail === 'string' && detail.trim()) return detail;
-  if (status === 400) return 'البيانات المدخلة غير صحيحة. تحقق من النص والصوت المختار ثم حاول مجدداً. (400)';
-  if (status === 404) return 'خدمة الصوت غير متاحة مؤقتاً. حاول مجدداً بعد قليل. (404)';
-  if (status === 429) return 'تم تجاوز الحد المسموح. انتظر قليلاً ثم حاول. (429)';
-  if (status === 502 || status === 503 || status === 504) return 'الخادم مشغول حالياً أو يستيقظ من وضع النوم. انتظر 30 ثانية وحاول مجدداً. (5xx)';
-  if (status >= 500) return `خطأ في الخادم. حاول مجدداً بعد قليل. (${status})`;
-  if (status >= 400) return `تعذر إتمام الطلب. (${status})`;
-  return 'حدث خطأ أثناء إنشاء الصوت.';
+  const fr = getLang() === 'fr';
+  if (status === 400) return fr ? 'Données invalides. Vérifiez le texte et la voix puis réessayez. (400)' : 'البيانات المدخلة غير صحيحة. تحقق من النص والصوت المختار ثم حاول مجدداً. (400)';
+  if (status === 404) return fr ? 'Service vocal temporairement indisponible. Réessayez bientôt. (404)' : 'خدمة الصوت غير متاحة مؤقتاً. حاول مجدداً بعد قليل. (404)';
+  if (status === 429) return fr ? 'Limite dépassée. Patientez puis réessayez. (429)' : 'تم تجاوز الحد المسموح. انتظر قليلاً ثم حاول. (429)';
+  if (status === 502 || status === 503 || status === 504) return fr ? 'Serveur occupé ou en veille. Attendez 30s et réessayez. (5xx)' : 'الخادم مشغول حالياً أو يستيقظ من وضع النوم. انتظر 30 ثانية وحاول مجدداً. (5xx)';
+  if (status >= 500) return fr ? `Erreur serveur. Réessayez bientôt. (${status})` : `خطأ في الخادم. حاول مجدداً بعد قليل. (${status})`;
+  if (status >= 400) return fr ? `Requête impossible. (${status})` : `تعذر إتمام الطلب. (${status})`;
+  return fr ? 'Erreur lors de la génération vocale.' : 'حدث خطأ أثناء إنشاء الصوت.';
 }
 
 function blobToBase64(blob) {
@@ -239,10 +563,11 @@ async function cleanupPreviousAudio() {
   }
   if (isNativePlatform() && nativeFileUri) {
     try {
+      await Filesystem.deleteFile({ path: nativeFileName, directory: Directory.Cache });
+    } catch (e) {}
+    try {
       await Filesystem.deleteFile({ path: nativeFileName, directory: Directory.Data });
-    } catch (e) {
-      // best-effort cleanup
-    }
+    } catch (e2) {}
     nativeFileUri = null;
   }
   currentBlob = null;
@@ -254,7 +579,7 @@ async function cleanupPreviousAudio() {
 // ---------------------------------------------------------------------------
 async function loadVoices() {
   if (!isApiConfigured()) {
-    const msg = 'تنبيه: لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL.';
+    const msg = tr('server_not_config');
     setStatus(msg);
     console.error('[NABRA] API not configured', { base: API_BASE_CANONICAL, origin: window.location.origin });
     return;
@@ -291,11 +616,11 @@ async function loadVoices() {
     const urlInfo = url;
     if (isTimeout) {
       console.error('[NABRA] voices timeout', { url: urlInfo, error: err.message });
-      setStatus('انتهت مهلة تحميل الأصوات. قد يكون الخادم يستيقظ — حاول مجدداً. يتم استخدام القائمة الافتراضية.');
+      setStatus(tr('voices_timeout'));
     } else if (isTypeError) {
       // CORS or network failure on Android WebView
       console.error('[NABRA] voices network/CORS error', { url: urlInfo, error: String(err), name: err.name });
-      setStatus('تعذر الاتصال بالخادم لتحميل الأصوات (قد يكون السبب الشبكة أو CORS). يتم استخدام القائمة الافتراضية — تحقق من الإنترنت.', true);
+      setStatus(tr('voices_network'), true);
     } else {
       console.error('[NABRA] voices error', { url: urlInfo, error: err && err.message });
       // HTTP error message already Arabic
@@ -314,18 +639,18 @@ async function loadVoices() {
 async function generateSpeech() {
   const text = textEl.value.trim();
   if (!text) {
-    setStatus('اكتب النص الذي تريد تحويله أولاً.', true);
+    setStatus(tr('need_text'), true);
     textEl.focus();
     return;
   }
   if (!isApiConfigured()) {
-    const msg = 'لم يتم ضبط رابط الخادم بعد. افتح ملف src/config.js وضع رابط Render الفعلي في SAWTI_API_BASE_URL ثم أعد بناء التطبيق.';
+    const msg = tr('server_not_config');
     setStatus(msg, true);
     console.error('[NABRA] API not configured', { base: API_BASE_CANONICAL, origin: window.location.origin });
     return;
   }
   if (navigator.onLine === false) {
-    setStatus('لا يوجد اتصال بالإنترنت. يتطلب التحويل اتصالاً بالإنترنت — تحقق من الاتصال وحاول مجدداً.', true);
+    setStatus(tr('no_internet'), true);
     return;
   }
 
@@ -334,8 +659,8 @@ async function generateSpeech() {
   }
 
   generate.disabled = true;
-  generate.innerHTML = '<span class="spinner"></span> جارٍ إنشاء الصوت...';
-  setStatus('قد يستغرق التحويل بضع ثوانٍ حسب طول النص وسرعة الإنترنت. إذا كان الخادم نائماً فقد يستغرق أول طلب وقتاً أطول.');
+  generate.innerHTML = '<span class="spinner"></span> ' + tr('generating');
+  setStatus(tr('generating_status'));
   result.classList.remove('show');
   result.setAttribute('aria-hidden', 'true');
   await cleanupPreviousAudio();
@@ -381,7 +706,7 @@ async function generateSpeech() {
     const blob = await response.blob();
     if (!blob || blob.size === 0) {
       console.error('[NABRA] tts empty blob', { url, size: blob && blob.size, type: blob && blob.type });
-      throw new Error('الخادم أعاد استجابة فارغة. حاول مجدداً.');
+      throw new Error(tr('empty_blob'));
     }
     logApiDiagnostic('tts-blob', { url, size: blob.size, type: blob.type });
     currentBlob = blob;
@@ -390,15 +715,21 @@ async function generateSpeech() {
     // Handle audio playback errors explicitly
     player.onerror = (e) => {
       console.error('[NABRA] audio playback error', { url, error: e, code: player.error && player.error.code, message: player.error && player.error.message });
-      setStatus('حدث خطأ أثناء تشغيل الصوت. حاول حفظ الملف وتشغيله ببرنامج خارجي.', true);
+      setStatus(tr('audio_play_error'), true);
     };
     player.load();
     // Ensure home tab is visible so player is reachable without excessive scroll
     try { if (typeof switchTab === 'function') switchTab('home'); } catch (_) {}
     result.classList.add('show');
     result.setAttribute('aria-hidden', 'false');
+    // Set displayed filename for premium result card
+    currentFileName = generateDownloadFileName();
+    const fileEl = document.getElementById('playerFileName');
+    if (fileEl) fileEl.textContent = currentFileName;
+    const badge = document.getElementById('playerBadge');
+    if (badge) badge.textContent = `MP3 · ${(currentBlob.size/1024).toFixed(0)}KB`;
     setTimeout(() => result.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 120);
-    setStatus('تم إنشاء الصوت بنجاح. استمع الآن أو احفظه أو شاركه.');
+    setStatus(tr('generated_success'));
     try { await player.play(); } catch (e) {
       console.warn('[NABRA] autoplay blocked', e);
     }
@@ -408,25 +739,25 @@ async function generateSpeech() {
     const urlInfo = url;
     if (isTimeout) {
       console.error('[NABRA] tts timeout', { url: urlInfo, timeoutMs: TTS_TIMEOUT_MS });
-      setStatus('انتهت مهلة الطلب. قد يكون الخادم يستيقظ من وضع النوم — انتظر 30 ثانية وحاول مجدداً.', true);
+      setStatus(tr('tts_timeout'), true);
     } else if (isTypeError) {
       // Network failure or CORS block in WebView — the most common Android issue
       const msg = String(err && err.message || err);
       const isCorsHint = msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed');
       console.error('[NABRA] tts network/CORS error', { url: urlInfo, error: msg, name: err.name, stack: err.stack && String(err.stack).slice(0, 800) });
       if (isCorsHint) {
-        setStatus('تعذر الاتصال بالخادم (فشل الشبكة أو حجب CORS). تحقق من الإنترنت وأن الخادم يسمح بطلبات https://localhost. افتح chrome://inspect لمزيد التفاصيل.', true);
+        setStatus(tr('tts_network_cors'), true);
       } else {
-        setStatus('تعذر الاتصال بالخادم. تحقق من اتصال الإنترنت وحاول مجدداً.', true);
+        setStatus(tr('tts_network'), true);
       }
     } else {
       // HTTP 400/500 already mapped to Arabic via getHttpArabicMessage
       console.error('[NABRA] tts error', { url: urlInfo, error: err && err.message });
-      setStatus(err.message || 'تعذر الاتصال بالخادم. حاول مرة أخرى.', true);
+      setStatus(err.message || tr('tts_network'), true);
     }
   } finally {
     generate.disabled = false;
-    generate.innerHTML = GENERATE_LABEL_HTML;
+    generate.innerHTML = (window.GENERATE_LABEL_HTML || GENERATE_LABEL_HTML);
   }
 }
 
@@ -435,14 +766,22 @@ async function generateSpeech() {
 // ---------------------------------------------------------------------------
 async function ensureNativeFile() {
   if (!currentBlob) return null;
-  if (nativeFileUri) return nativeFileUri;
+  if (nativeFileUri) {
+    // Return cached uri if blob unchanged; validate still exists
+    return nativeFileUri;
+  }
   const base64 = await blobToBase64(currentBlob);
+  const fileName = currentFileName || generateDownloadFileName();
+  if (!currentFileName) currentFileName = fileName;
+  nativeFileName = fileName;
+  // Use Cache so FileProvider (cache-path) can grant access to receiving apps
   const written = await Filesystem.writeFile({
-    path: nativeFileName,
+    path: fileName,
     data: base64,
-    directory: Directory.Data,
+    directory: Directory.Cache,
   });
   nativeFileUri = written.uri;
+  // Keep uri for Share; Share plugin converts file:// to content:// via FileProvider
   return nativeFileUri;
 }
 
@@ -452,18 +791,18 @@ async function saveMp3() {
     return;
   }
   if (!currentBlob) {
-    setStatus('لا يوجد صوت لحفظه بعد. حوّل النص إلى صوت أولاً.', true);
+    setStatus(tr('need_audio'), true);
     return;
   }
   // Validate that blob is actual audio, not JSON/HTML error
   if (currentBlob.size === 0) {
     console.error('[NABRA] saveMp3 empty blob', { size: currentBlob.size, type: currentBlob.type });
-    setStatus('الملف الصوتي فارغ. حاول توليد الصوت مرة أخرى.', true);
+    setStatus(tr('save_empty'), true);
     return;
   }
   if (currentBlob.type && !currentBlob.type.includes('audio') && currentBlob.type.includes('json')) {
     console.error('[NABRA] saveMp3 wrong mime', { type: currentBlob.type, size: currentBlob.size });
-    setStatus('الملف ليس صوتاً صالحاً. حاول توليد الصوت مرة أخرى.', true);
+    setStatus(tr('save_invalid'), true);
     return;
   }
   // WebView Blob URLs may have type '' — allow if size > 1KB
@@ -474,13 +813,14 @@ async function saveMp3() {
   isSaving = true;
   const originalBtnHTML = saveBtn.innerHTML;
   saveBtn.disabled = true;
-  saveBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> جاري الحفظ...';
+  saveBtn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> ' + (getLang()==='fr' ? 'Enregistrement...' : 'جاري الحفظ...');
   // Also disable generate to avoid race? Keep generate enabled
 
   try {
     if (isNativePlatform()) {
-      // Native Android: save directly to public Downloads via MediaStore
-      const fileName = generateDownloadFileName();
+      // Native Android: save directly to public Downloads via MediaStore — reuse displayed filename if exists
+      const fileName = currentFileName || generateDownloadFileName();
+      if (!currentFileName) currentFileName = fileName;
       console.log('[NABRA] saveMp3 native start', { fileName, blobSize: currentBlob.size, blobType: currentBlob.type });
       const base64 = await blobToBase64(currentBlob);
       // Verify base64 decodes to reasonable size
@@ -494,7 +834,7 @@ async function saveMp3() {
           mimeType: 'audio/mpeg'
         });
         console.log('[NABRA] saveToDownloads success', result);
-        setStatus('تم حفظ الملف الصوتي في مجلد التنزيلات', false);
+        setStatus(tr('file_saved_downloads'), false);
       } catch (nativeErr) {
         console.error('[NABRA] NabraDownload.saveToDownloads failed', {
           error: nativeErr && nativeErr.message,
@@ -516,7 +856,7 @@ async function saveMp3() {
           });
           console.log('[NABRA] fallback ExternalStorage success', w);
           savedViaFallback = true;
-          setStatus('تم حفظ الملف الصوتي في مجلد التنزيلات', false);
+          setStatus(tr('file_saved_downloads'), false);
         } catch (e1) {
           fallbackError = e1;
           console.warn('[NABRA] fallback ExternalStorage failed', e1 && e1.message);
@@ -530,7 +870,7 @@ async function saveMp3() {
             });
             console.log('[NABRA] fallback Documents success', w2);
             savedViaFallback = true;
-            setStatus('تم حفظ الملف الصوتي في مجلد المستندات', false);
+            setStatus(tr('file_saved_documents'), false);
           } catch (e2) {
             console.error('[NABRA] fallback Documents failed', e2 && e2.message);
             fallbackError = e2;
@@ -548,7 +888,8 @@ async function saveMp3() {
         currentUrl = URL.createObjectURL(currentBlob);
         player.src = currentUrl;
       }
-      const fileName = generateDownloadFileName();
+      const fileName = currentFileName || generateDownloadFileName();
+      if (!currentFileName) currentFileName = fileName;
       console.log('[NABRA] saveMp3 web download', { fileName, size: currentBlob.size });
       const a = document.createElement('a');
       a.href = currentUrl;
@@ -556,18 +897,18 @@ async function saveMp3() {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      setStatus('بدأ تنزيل ملف MP3.', false);
+      setStatus(tr('download_started'), false);
     }
   } catch (err) {
     const msg = (err && err.message) ? err.message : String(err);
     console.error('[NABRA] saveMp3 error', { error: msg, stack: err && err.stack && String(err.stack).slice(0, 800) });
     if (msg.toLowerCase().includes('cancel')) {
-      setStatus('تم إلغاء الحفظ.');
+      setStatus(tr('share_cancelled'));
     } else if (msg.includes('تم حفظ')) {
       setStatus(msg, true);
     } else {
       // Keep user-friendly Arabic, log technical details
-      setStatus('تعذر حفظ الملف. تحقق من المساحة وحاول مرة أخرى. (' + msg.slice(0, 120) + ')', true);
+      setStatus(tr('save_failed') + ' (' + msg.slice(0, 80) + ')', true);
     }
   } finally {
     isSaving = false;
@@ -578,36 +919,39 @@ async function saveMp3() {
 
 async function shareMp3() {
   if (!currentBlob) {
-    setStatus('لا يوجد صوت لمشاركته بعد. حوّل النص إلى صوت أولاً.', true);
+    setStatus(tr('need_audio_share'), true);
     return;
   }
   if (isNativePlatform()) {
     try {
       const uri = await ensureNativeFile();
+      const shareText = getLang()==='fr' ? 'Écoutez cet audio de NABRA AI — نَبْرَة AI' : 'استمع إلى هذا الصوت من NABRA AI — نَبْرَة AI';
+      const dialogTitle = getLang()==='fr' ? 'Partager MP3' : 'مشاركة MP3';
       await Share.share({
         title: 'NABRA AI',
-        text: 'استمع إلى هذا الصوت من NABRA AI — نَبْرَة AI',
+        text: shareText,
         url: uri,
-        dialogTitle: 'مشاركة MP3',
+        dialogTitle: dialogTitle,
       });
     } catch (err) {
       if (err && (err.message || '').toLowerCase().includes('cancel')) {
-        setStatus('تم إلغاء المشاركة.');
+        setStatus(tr('share_cancelled'));
       } else {
-        setStatus('تعذر مشاركة الملف. حاول مرة أخرى.', true);
+        setStatus(tr('share_failed'), true);
       }
     }
   } else if (navigator.share) {
     try {
-      const file = new File([currentBlob], 'nabra-ai.mp3', { type: 'audio/mpeg' });
+      const shareFileName = currentFileName || 'nabra-ai.mp3';
+      const file = new File([currentBlob], shareFileName, { type: 'audio/mpeg' });
       await navigator.share({ title: 'NABRA AI', files: [file] });
     } catch (err) {
       if (err && err.name !== 'AbortError') {
-        setStatus('تعذر مشاركة الملف. يمكنك تنزيله بدلاً من ذلك.', true);
+        setStatus(tr('share_failed'), true);
       }
     }
   } else {
-    setStatus('المشاركة المباشرة غير مدعومة في هذا المتصفح. يمكنك تنزيل ملف MP3 بدلاً من ذلك.', true);
+    setStatus(tr('share_not_supported'), true);
   }
 }
 
@@ -636,7 +980,7 @@ function setupCustomPlayer() {
   playPauseBtn.addEventListener('click', async () => {
     if (!player.src) return;
     if (player.paused) {
-      try { await player.play(); } catch (e) { setStatus('تعذر التشغيل. حاول مرة أخرى.', true); }
+      try { await player.play(); } catch (e) { setStatus(tr('audio_play_error'), true); }
     } else {
       player.pause();
     }
@@ -704,7 +1048,7 @@ textEl.addEventListener('input', () => {
 });
 function updateSettingsHint() {
   const hint = document.getElementById('settingsHint');
-  if (hint) hint.textContent = `السرعة ${rate.value}% · الحدة ${pitch.value}`;
+  if (hint) hint.textContent = `${tr('rate_hint')} ${rate.value}% · ${tr('pitch_hint')} ${pitch.value}`;
 }
 rate.addEventListener('input', () => {
   document.getElementById('rateVal').textContent = `${rate.value}%`;
@@ -779,12 +1123,13 @@ navItems.forEach(btn => {
   });
 });
 
-// Top settings icon → open Settings tab
-if (settingsBtn) {
-  settingsBtn.addEventListener('click', () => {
-    switchTab('settings');
+// Theme switcher — Settings only (header toggles removed)
+document.querySelectorAll('.theme-btn[data-theme]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.getAttribute('data-theme');
+    if (t) applyTheme(t);
   });
-}
+})
 
 generate.addEventListener('click', generateSpeech);
 saveBtn.addEventListener('click', saveMp3);
@@ -814,7 +1159,7 @@ async function initNative() {
     await Network.addListener('networkStatusChange', (status) => {
       setOffline(!status.connected);
       if (!status.connected) {
-        setStatus('لا يوجد اتصال بالإنترنت. يتطلب التطبيق اتصالاً بالإنترنت لتحويل النص إلى صوت.', true);
+        setStatus(tr('offline_banner'), true);
       }
     });
   } catch (e) { /* ignore */ }
@@ -854,8 +1199,6 @@ async function initNative() {
 if (isNativePlatform()) {
   initNative();
 } else {
-  window.addEventListener('offline', () => setOffline(true));
-  window.addEventListener('online', () => setOffline(false));
   if (navigator.onLine === false) setOffline(true);
 }
 
